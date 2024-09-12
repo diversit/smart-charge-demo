@@ -141,6 +141,38 @@
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.jsonschema2pojo</groupId>
+                <artifactId>jsonschema2pojo-maven-plugin</artifactId>
+                <version>1.2.1</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <sourceDirectory>${basedir}/src/main/jsonschema/ocpp_1.6j</sourceDirectory>
+                    <targetPackage>eu.diversit.demo.smartcharging.model.json.ocpp</targetPackage>
+                    <annotationStyle>jackson</annotationStyle>
+                    <!-- optional fraction of seconds -->
+                    <customDateTimePattern>yyyy-MM-dd'T'HH:mm:ss[.SSS]XXX</customDateTimePattern>
+                    <removeOldOutput>true</removeOldOutput>
+                    <generateBuilders>true</generateBuilders>
+                    <includeConstructors>true</includeConstructors>
+                    <includeCopyConstructor>true</includeCopyConstructor>
+                    <targetVersion>${maven.compiler.release}</targetVersion>
+                    <includeJsr305Annotations>true</includeJsr305Annotations>
+                    <includeSetters>false</includeSetters>
+                    <useInnerClassBuilders>true</useInnerClassBuilders>
+                    <useOptionalForGetters>true</useOptionalForGetters>
+                    <dateTimeType>java.time.ZonedDateTime</dateTimeType>
+                    <dateType>java.time.LocalDate</dateType>
+                    <formatDateTimes>true</formatDateTimes>
+                    <formatDates>true</formatDates>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
