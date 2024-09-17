@@ -4,6 +4,8 @@ import io.quarkus.test.common.http.TestHTTPResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.websockets.next.BasicWebSocketConnector;
 import jakarta.inject.Inject;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
@@ -19,8 +21,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 
 @QuarkusTest
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class OcppEndpointNextTest {
 
+    // Request and response json's used for testing.
+    // Note: the responses are used in a pattern match and therefore need some '\\' to make the regex parser happy
+    private static final String AUTHORIZE_ALLOWED = """
+            [2, "UNIQUEID", "Authorize", {"idTag": "Tag1"}]""";
+    private static final String AUTHORIZE_ALLOWED_RESPONSE = """
+            \\[3,"UNIQUEID",\\{"idTagInfo":\\{"status":"Accepted"}}]""";
+    private static final String AUTHORIZE_INVALID = """
+            [2, "UNIQUEID", "Authorize", {"idTag": "Unknown"}]""";
+    private static final String AUTHORIZE_INVALID_RESPONSE = """
+            \\[3,"UNIQUEID",\\{"idTagInfo":\\{"status":"Invalid"}}]""";
     private static final String BOOT_NOTIFICATION = """
             [2,"UNIQUEID","BootNotification",{"chargePointVendor":"ECOTAP","chargePointModel":"DUO2","chargePointSerialNumber":"123","chargeBoxSerialNumber":"11752628","firmwareVersion":"4.3x.32R.16","iccid":"8931081721117385147","imsi":"204080822156943","meterSerialNumber":"21930052"}]""";
     private static final String BOOT_NOTIFICATION_RESPONSE = """
@@ -53,6 +66,14 @@ class OcppEndpointNextTest {
         });
     }
 
+    @Test
+    public void handle_authorize_call() throws InterruptedException {
+        sendWebsocketMessage(AUTHORIZE_ALLOWED, AUTHORIZE_ALLOWED_RESPONSE, _ -> {
+        });
+        sendWebsocketMessage(AUTHORIZE_INVALID, AUTHORIZE_INVALID_RESPONSE, _ -> {
+        });
+    }
+
     private String makeUnique(String value, String uniqueId) {
         return value.replace("UNIQUE", uniqueId);
     }
@@ -65,6 +86,7 @@ class OcppEndpointNextTest {
         // open connection
         var connection = webSocketConnector.baseUri(baseUri)
                 .path("/OcppEndpointTest")
+                .addSubprotocol("ocpp1.6")
                 .executionModel(BasicWebSocketConnector.ExecutionModel.NON_BLOCKING)
                 .onTextMessage((_, json) -> {
                     assertThat(json).containsPatternSatisfying(makeUnique(expectedResponse, uniqueId), matcherConsumer);
@@ -79,7 +101,7 @@ class OcppEndpointNextTest {
         connection.sendTextAndAwait(makeUnique(request, uniqueId));
 
         // wait for response
-        assertThat(responseLatch.await(5, TimeUnit.SECONDS))
+        assertThat(responseLatch.await(2, TimeUnit.SECONDS))
                 .describedAs("No response received")
                 .isTrue();
 

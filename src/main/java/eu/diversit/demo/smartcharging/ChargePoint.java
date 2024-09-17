@@ -7,11 +7,13 @@ import eu.diversit.demo.smartcharging.model.json.ocpp.*;
 import io.vavr.control.Option;
 import io.vertx.core.json.JsonObject;
 import jakarta.enterprise.context.ApplicationScoped;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.ZonedDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static io.vavr.control.Option.some;
@@ -19,10 +21,12 @@ import static io.vavr.control.Option.some;
 @ApplicationScoped
 public class ChargePoint {
     private static final Logger LOG = LoggerFactory.getLogger(ChargePoint.class);
-
     private Map<Integer, StatusNotification> connectors = new HashMap<>();
     private BootNotification bootNotification = null;
     private ChargeBoxId chargeBoxId = null;
+
+    @ConfigProperty(name = "tags.allowed")
+    private List<String> allowedTags;
 
     /**
      * @param chargeBoxId
@@ -93,8 +97,17 @@ public class ChargePoint {
 
     private Object handleCall(Object decodedPayload) {
         return switch (decodedPayload) {
-//            case Action.ByCentralSystem _ -> LOG.error("Invalid call with 'ByCentralSystem' action {}", action.name());
-////            case Action.ByChargePoint.AUTHORIZE authorize -> {}
+            case Authorize authorize -> {
+                // check if provided tag is allowed
+                var status = allowedTags.contains(authorize.getIdTag()) ? IdTagInfo.Status.ACCEPTED : IdTagInfo.Status.INVALID;
+                yield AuthorizeResponse.builder()
+                        .withIdTagInfo(IdTagInfo.builder()
+                                .withStatus(status)
+                                // optionally add an expiry date
+                                .build()
+                        )
+                        .build();
+            }
             case BootNotification bn -> {
                 // save the bootnotification
                 this.bootNotification = bn;
