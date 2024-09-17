@@ -1,10 +1,14 @@
 package eu.diversit.demo.smartcharging.websocket;
 
+import eu.diversit.demo.smartcharging.model.json.OcppJsonMessage;
+import eu.diversit.demo.smartcharging.model.json.ocpp.HeartbeatResponse;
 import io.quarkus.websockets.next.*;
-import io.vertx.core.json.JsonArray;
+import io.vavr.control.Option;
+import io.vertx.core.json.JsonObject;
 import jakarta.inject.Inject;
 
 import java.io.IOException;
+import java.time.ZonedDateTime;
 
 /**
  * OCPP WebSocket endpoint using Quarkus WebSocket Next extension.
@@ -42,8 +46,18 @@ public class OcppEndpointNext {
         System.out.println("On Error (connection " + connection.id() + "): " + throwable);
     }
 
-    @OnTextMessage
-    public void onMessage(JsonArray ocppMessage, @PathParam("chargeBoxId") String chargeBoxId) throws IOException {
+    @OnTextMessage(
+            codec = OcppJsonMessageCodec.class,
+            outputCodec = OcppJsonMessageCodec.class
+    )
+    public OcppJsonMessage onMessage(OcppJsonMessage ocppMessage, @PathParam("chargeBoxId") String chargeBoxId) throws IOException {
         System.out.println("On Message (connection " + connection.id() + "): " + ocppMessage);
+
+        return new OcppJsonMessage.CallResult(
+                ocppMessage.messageId(),
+                Option.of(JsonObject.mapFrom(new HeartbeatResponse(
+                        ZonedDateTime.now()
+                )))
+        );
     }
 }
