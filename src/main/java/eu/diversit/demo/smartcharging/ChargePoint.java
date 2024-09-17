@@ -3,9 +3,7 @@ package eu.diversit.demo.smartcharging;
 import eu.diversit.demo.smartcharging.model.ChargeBoxId;
 import eu.diversit.demo.smartcharging.model.json.Action;
 import eu.diversit.demo.smartcharging.model.json.OcppJsonMessage;
-import eu.diversit.demo.smartcharging.model.json.ocpp.BootNotification;
-import eu.diversit.demo.smartcharging.model.json.ocpp.BootNotificationResponse;
-import eu.diversit.demo.smartcharging.model.json.ocpp.StatusNotification;
+import eu.diversit.demo.smartcharging.model.json.ocpp.*;
 import io.vavr.control.Option;
 import io.vertx.core.json.JsonObject;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -109,7 +107,10 @@ public class ChargePoint {
             }
 //            case Action.ByChargePoint.DATATRANSFER datatransfer -> {}
 //            case Action.ByChargePoint.DIAGNOSTICSSTATUSNOTIFICATION dsn -> {}
-//            case Action.ByChargePoint.HEARTBEAT heartbeat -> {}
+            case Heartbeat _ -> // return response with current time
+                    HeartbeatResponse.builder()
+                            .withCurrentTime(ZonedDateTime.now())
+                            .build();
 //            case Action.ByChargePoint.FIRMWARESTATUSNOTIFICATION fsn -> {}
 //            case Action.ByChargePoint.METERVALUES metervalues -> {}
 //            case Action.ByChargePoint.STARTTRANSACTION starttransaction -> {}
