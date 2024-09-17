@@ -1,9 +1,13 @@
 package eu.diversit.demo.smartcharging.websocket;
 
+import eu.diversit.demo.smartcharging.model.ChargePoint;
+import eu.diversit.demo.smartcharging.model.ChargePointState;
+import eu.diversit.demo.smartcharging.model.json.ocpp.StatusNotification;
 import io.quarkus.test.common.http.TestHTTPResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.websockets.next.BasicWebSocketConnector;
 import jakarta.inject.Inject;
+import org.assertj.vavr.api.VavrAssertions;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -42,12 +46,19 @@ class OcppEndpointNextTest {
             [2,"UNIQUEID","Heartbeat",{}]""";
     private static final String HEARTBEAT_RESPONSE = """
             \\[3,"UNIQUEID",\\{"currentTime":"([0-9-:.TZ]+)"}]""";
+    private static final String STATUS_NOTIFICATION_CONN_0 = """
+            [2,"UNIQUEID","StatusNotification",{"connectorId":0,"status":"Available","errorCode":"NoError","info":"","timestamp":"2023-09-28T08:31:30+00:00"}]""";
+    private static final String STATUS_NOTIFICATION_CONN_0_RESPONSE = """
+            \\[3,"UNIQUEID",\\{}]""";
 
     @Inject
     BasicWebSocketConnector webSocketConnector;
 
     @TestHTTPResource("/ocpp")
     URI baseUri;
+
+    @Inject
+    ChargePoint chargePoint;
 
     @Test
     public void handle_bootnotification_call() throws InterruptedException {
@@ -71,6 +82,28 @@ class OcppEndpointNextTest {
         sendWebsocketMessage(AUTHORIZE_ALLOWED, AUTHORIZE_ALLOWED_RESPONSE, _ -> {
         });
         sendWebsocketMessage(AUTHORIZE_INVALID, AUTHORIZE_INVALID_RESPONSE, _ -> {
+        });
+    }
+
+    @Test
+    public void handle_statusnotification_call() throws InterruptedException {
+        sendWebsocketMessage(STATUS_NOTIFICATION_CONN_0, STATUS_NOTIFICATION_CONN_0_RESPONSE, _ -> {
+        });
+
+        ChargePointState state = chargePoint.getState();
+
+        VavrAssertions.assertThat(state.connectorStatuses()).allSatisfy((connectorId, status) -> {
+            assertThat(connectorId).isEqualTo(0);
+            assertThat(status.transactions()).isEmpty();
+            assertThat(status.statuses()).allSatisfy(statusNotification -> {
+                assertThat(statusNotification.getStatus()).isEqualTo(StatusNotification.Status.AVAILABLE);
+                assertThat(statusNotification.getConnectorId()).isEqualTo(0);
+                assertThat(statusNotification.getErrorCode()).isEqualTo(StatusNotification.ErrorCode.NO_ERROR);
+                assertThat(statusNotification.getTimestamp()).contains(ZonedDateTime.parse("2023-09-28T08:31:30+00:00"));
+                assertThat(statusNotification.getInfo()).contains("");
+                assertThat(statusNotification.getVendorId()).isEmpty();
+                assertThat(statusNotification.getVendorErrorCode()).isEmpty();
+            });
         });
     }
 

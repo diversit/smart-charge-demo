@@ -1,9 +1,9 @@
-package eu.diversit.demo.smartcharging;
+package eu.diversit.demo.smartcharging.model;
 
-import eu.diversit.demo.smartcharging.model.ChargeBoxId;
 import eu.diversit.demo.smartcharging.model.json.Action;
 import eu.diversit.demo.smartcharging.model.json.OcppJsonMessage;
 import eu.diversit.demo.smartcharging.model.json.ocpp.*;
+import io.vavr.collection.HashMap;
 import io.vavr.control.Option;
 import io.vertx.core.json.JsonObject;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -12,21 +12,30 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.ZonedDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static io.vavr.control.Option.some;
 
 @ApplicationScoped
 public class ChargePoint {
     private static final Logger LOG = LoggerFactory.getLogger(ChargePoint.class);
-    private Map<Integer, StatusNotification> connectors = new HashMap<>();
+    private java.util.Map<Integer, ConnectorStatus> connectors = new java.util.HashMap<>();
     private BootNotification bootNotification = null;
     private ChargeBoxId chargeBoxId = null;
 
+    private AtomicInteger transactionIdProvider = new AtomicInteger(0);
+
     @ConfigProperty(name = "tags.allowed")
-    private List<String> allowedTags;
+    private java.util.List<String> allowedTags;
+
+
+    public ChargePointState getState() {
+        return new ChargePointState(
+                chargeBoxId,
+                bootNotification,
+                HashMap.ofAll(connectors)
+        );
+    }
 
     /**
      * @param chargeBoxId
@@ -118,16 +127,31 @@ public class ChargePoint {
                         .withCurrentTime(ZonedDateTime.now())
                         .build();
             }
-//            case Action.ByChargePoint.DATATRANSFER datatransfer -> {}
-//            case Action.ByChargePoint.DIAGNOSTICSSTATUSNOTIFICATION dsn -> {}
+//            case DataTransfer dt -> {}
+//            case DiagnosticsStatusNotification dsn -> {}
             case Heartbeat _ -> // return response with current time
                     HeartbeatResponse.builder()
                             .withCurrentTime(ZonedDateTime.now())
                             .build();
-//            case Action.ByChargePoint.FIRMWARESTATUSNOTIFICATION fsn -> {}
+//            case FirmwareStatusNotification fsn -> {}
 //            case Action.ByChargePoint.METERVALUES metervalues -> {}
-//            case Action.ByChargePoint.STARTTRANSACTION starttransaction -> {}
-//            case Action.ByChargePoint.STATUSNOTIFICATION statusnotification -> {}
+            case StartTransaction startTransaction -> {
+                var status = allowedTags.contains(startTransaction.getIdTag()) ? IdTagInfo__2.Status.ACCEPTED : IdTagInfo__2.Status.INVALID;
+
+                yield StartTransactionResponse.builder()
+                        .withIdTagInfo(IdTagInfo__2.builder()
+                                .withStatus(status)
+                                .build()
+                        ).withTransactionId(1)
+                        .build();
+            }
+            case StatusNotification sn -> {
+                // save the status for the connector
+                connectors.compute(sn.getConnectorId(), (_, currentStatus) -> currentStatus == null ? ConnectorStatus.init(sn) : currentStatus.addStatus(sn));
+
+                yield StatusNotificationResponse.builder()
+                        .build();
+            }
 //            case Action.ByChargePoint.STOPTRANSACTION stoptransaction {}
             default -> {
                 LOG.warn("Unsupported payload: {}", decodedPayload);
@@ -136,5 +160,4 @@ public class ChargePoint {
             }
         };
     }
-
 }

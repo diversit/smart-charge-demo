@@ -1,7 +1,7 @@
 package eu.diversit.demo.smartcharging.websocket;
 
-import eu.diversit.demo.smartcharging.ChargePoint;
 import eu.diversit.demo.smartcharging.model.ChargeBoxId;
+import eu.diversit.demo.smartcharging.model.ChargePoint;
 import eu.diversit.demo.smartcharging.model.json.OcppJsonMessage;
 import io.quarkus.websockets.next.*;
 import jakarta.inject.Inject;
