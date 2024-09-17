@@ -9,8 +9,11 @@ import org.junit.jupiter.api.Test;
 import java.net.URI;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+import java.util.regex.Matcher;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
@@ -22,8 +25,10 @@ class OcppEndpointNextTest {
             [2,"UNIQUEID","BootNotification",{"chargePointVendor":"ECOTAP","chargePointModel":"DUO2","chargePointSerialNumber":"123","chargeBoxSerialNumber":"11752628","firmwareVersion":"4.3x.32R.16","iccid":"8931081721117385147","imsi":"204080822156943","meterSerialNumber":"21930052"}]""";
     private static final String BOOT_NOTIFICATION_RESPONSE = """
             \\[3,"UNIQUEID",\\{"status":"Accepted","currentTime":"([0-9-:.TZ]+)","interval":600}]""";
+    private static final String HEARTBEAT = """
+            [2,"UNIQUEID","Heartbeat",{}]""";
     private static final String HEARTBEAT_RESPONSE = """
-            \\[3,"VFrf3TJ7oZdp37L5B3nSDHWPIDKwfZOxRIFh",\\{"currentTime":"([0-9-:.TZ]+)"}]""";
+            \\[3,"UNIQUEID",\\{"currentTime":"([0-9-:.TZ]+)"}]""";
 
     @Inject
     BasicWebSocketConnector webSocketConnector;
@@ -33,51 +38,36 @@ class OcppEndpointNextTest {
 
     @Test
     public void handle_bootnotification_call() throws InterruptedException {
-        CountDownLatch responseLatch = new CountDownLatch(1);
 
-        // open connection
-        var connection = webSocketConnector.baseUri(baseUri)
-                .path("/BootNotificationTest")
-                .executionModel(BasicWebSocketConnector.ExecutionModel.NON_BLOCKING)
-                .onTextMessage((_, json) -> {
-                    assertThat(json).containsPatternSatisfying(BOOT_NOTIFICATION_RESPONSE, matcher -> {
-                        var datetime = ZonedDateTime.parse(matcher.group(1));
-                        assertThat(datetime).isCloseTo(ZonedDateTime.now(), within(2, ChronoUnit.SECONDS));
-                    });
-
-                    responseLatch.countDown();
-                })
-                .connectAndAwait();
-
-        assertThat(connection.isOpen()).isTrue();
-
-        // send event
-        connection.sendTextAndAwait(BOOT_NOTIFICATION);
-
-        // wait for response
-        assertThat(responseLatch.await(50, TimeUnit.SECONDS))
-                .describedAs("No response received")
-                .isTrue();
-
-        // close connection
-        connection.closeAndAwait();
-
-        assertThat(connection.isClosed()).isTrue();
+        sendWebsocketMessage(BOOT_NOTIFICATION, BOOT_NOTIFICATION_RESPONSE, matcher -> {
+            var datetime = ZonedDateTime.parse(matcher.group(1));
+            assertThat(datetime).isCloseTo(ZonedDateTime.now(), within(2, ChronoUnit.SECONDS));
+        });
     }
 
     @Test
     public void handle_heartbeat_call() throws InterruptedException {
+        sendWebsocketMessage(HEARTBEAT, HEARTBEAT_RESPONSE, matcher -> {
+            var datetime = ZonedDateTime.parse(matcher.group(1));
+            assertThat(datetime).isCloseTo(ZonedDateTime.now(), within(2, ChronoUnit.SECONDS));
+        });
+    }
+
+    private String makeUnique(String value, String uniqueId) {
+        return value.replace("UNIQUE", uniqueId);
+    }
+
+    private void sendWebsocketMessage(String request, String expectedResponse, Consumer<Matcher> matcherConsumer) throws InterruptedException {
         CountDownLatch responseLatch = new CountDownLatch(1);
+
+        var uniqueId = UUID.randomUUID().toString();
 
         // open connection
         var connection = webSocketConnector.baseUri(baseUri)
-                .path("/HeartBeatTest")
+                .path("/OcppEndpointTest")
                 .executionModel(BasicWebSocketConnector.ExecutionModel.NON_BLOCKING)
                 .onTextMessage((_, json) -> {
-                    assertThat(json).containsPatternSatisfying(HEARTBEAT_RESPONSE, matcher -> {
-                        var datetime = ZonedDateTime.parse(matcher.group(1));
-                        assertThat(datetime).isCloseTo(ZonedDateTime.now(), within(2, ChronoUnit.SECONDS));
-                    });
+                    assertThat(json).containsPatternSatisfying(makeUnique(expectedResponse, uniqueId), matcherConsumer);
 
                     responseLatch.countDown();
                 })
@@ -86,15 +76,10 @@ class OcppEndpointNextTest {
         assertThat(connection.isOpen()).isTrue();
 
         // send event
-        connection.sendTextAndAwait("""
-                [
-                    2,
-                    "VFrf3TJ7oZdp37L5B3nSDHWPIDKwfZOxRIFh",
-                    "HeartBeat"
-                ]""");
+        connection.sendTextAndAwait(makeUnique(request, uniqueId));
 
         // wait for response
-        assertThat(responseLatch.await(50, TimeUnit.SECONDS))
+        assertThat(responseLatch.await(5, TimeUnit.SECONDS))
                 .describedAs("No response received")
                 .isTrue();
 
