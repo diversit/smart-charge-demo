@@ -9,6 +9,16 @@ import io.vertx.core.json.JsonObject;
 import java.util.UUID;
 import java.util.function.Function;
 
+/**
+ * Generic OCPP Json Message definition.
+ * <p>
+ * The payload is a still a JsonObject.
+ * For the CALL the payload could be determined,
+ * but for CALLRESULT the payload depends on the action of the CALL for which the CALLRESULT is a reply.
+ * and for CALLERROR the payload could be anything.
+ * <p>
+ * Therefore, keeping payload generic here and map to more specific type when handling the message.
+ */
 public sealed interface OcppJsonMessage {
 
     int MESSAGE_TYPE_POS = 0;
