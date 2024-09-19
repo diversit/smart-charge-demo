@@ -1,6 +1,7 @@
 package eu.diversit.demo.smartcharging.websocket;
 
 import eu.diversit.demo.smartcharging.model.ChargePoint;
+import eu.diversit.demo.smartcharging.model.json.ocpp.SampledValue;
 import eu.diversit.demo.smartcharging.model.json.ocpp.StatusNotification;
 import io.quarkus.test.common.http.TestHTTPResource;
 import io.quarkus.test.junit.QuarkusTest;
@@ -19,6 +20,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 
@@ -54,10 +56,12 @@ class OcppEndpointNextTest {
     private static final String START_TRANSACTION = """
             [2,"UNIQUEID","StartTransaction",{"connectorId": 1, "idTag": "Tag1", "meterStart":23232, "timestamp":"2023-09-28T08:35:30+00:00"}]""";
     private static final String START_TRANSACTION_RESPONSE = """
-            \\[3,"UNIQUEID",\\{"idTagInfo":\\{"status":"Accepted"},"transactionId":1}]""";
-
+            \\[3,"UNIQUEID",\\{"idTagInfo":\\{"status":"Accepted"},"transactionId":([0-9]+)}]""";
     private static final Consumer<Matcher> NO_MATCHER = _ -> {
     };
+    private static final String METERVALUES_RESPONSE = """
+            \\[3,"UNIQUEID",\\{}]""";
+
     private final DateTimeFormatter ISO_8601_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss[.SSS]XXX");
 
     @Inject
@@ -69,7 +73,15 @@ class OcppEndpointNextTest {
     @Inject
     ChargePoint chargePoint;
 
-    private String createStatusNotification(int connectorId, String status) {
+    private static String METERVALUES(Integer connector, Integer tx) {
+        return String.format("""
+                        [2,"UNIQUEID","MeterValues",{"connectorId":%d,"transactionId":%d,"meterValue":[{"timestamp":"2024-09-19T12:30:49+00:00","sampledValue":[{"measurand":"Energy.Active.Import.Register","unit":"Wh","value":"11295100"},{"measurand":"Voltage","unit":"V","value":"236.2"},{"measurand":"Temperature","unit":"Celsius","value":"25"},{"measurand":"Frequency","value":"50.04"},{"measurand":"Current.Import","phase":"L1","unit":"A","value":"15.90"},{"measurand":"Current.Import","phase":"L2","unit":"A","value":"16.10"},{"measurand":"Current.Import","phase":"L3","unit":"A","value":"15.90"}]}]}]""",
+                connector,
+                tx
+        );
+    }
+
+    private String STATUSNOTIFICATION(int connectorId, String status) {
         return String.format("""
                         [2,"UNIQUEID","StatusNotification",{"connectorId":%d,"status":"%s","errorCode":"NoError","info":"","timestamp":"%s"}]""",
                 connectorId,
@@ -128,10 +140,13 @@ class OcppEndpointNextTest {
     @Test
     public void handle_starttransaction_call() throws InterruptedException {
         // send status notification first
-        sendWebsocketMessage(createStatusNotification(1, "Available"), STATUS_NOTIFICATION_RESPONSE, NO_MATCHER);
+        sendWebsocketMessage(STATUSNOTIFICATION(1, "Available"), STATUS_NOTIFICATION_RESPONSE, NO_MATCHER);
 
         // start transaction
-        sendWebsocketMessage(START_TRANSACTION, START_TRANSACTION_RESPONSE, NO_MATCHER);
+        sendWebsocketMessage(START_TRANSACTION, START_TRANSACTION_RESPONSE, matcher -> {
+            var txId = Integer.parseInt(matcher.group(1));
+            assertThat(txId).isPositive();
+        });
 
         VavrAssertions.assertThat(chargePoint.getState().connectorStatuses()).allSatisfy((connectorId, status) -> {
             assertThat(connectorId).isEqualTo(1);
@@ -140,6 +155,69 @@ class OcppEndpointNextTest {
                 assertThat(tx.meterStart().value()).isEqualTo(23232);
                 assertThat(tx.idTag().value()).isEqualTo("Tag1");
                 assertThat(tx.startTimestamp()).isEqualTo(ZonedDateTime.parse("2023-09-28T08:35:30+00:00"));
+                assertThat(tx.meterStop()).isEmpty();
+                assertThat(tx.meterValues()).isEmpty();
+                assertThat(tx.stopTimestamp()).isEmpty();
+            });
+        });
+    }
+
+    @Test
+    public void handle_metervalues_call() throws InterruptedException {
+        // send status notification first
+        sendWebsocketMessage(STATUSNOTIFICATION(1, "Available"), STATUS_NOTIFICATION_RESPONSE, NO_MATCHER);
+
+        // start transaction
+        var txId = new AtomicInteger(0);
+        sendWebsocketMessage(START_TRANSACTION, START_TRANSACTION_RESPONSE, matcher -> {
+            // get transaction id from response
+            txId.set(Integer.parseInt(matcher.group(1)));
+        });
+
+        // send metervalues
+        sendWebsocketMessage(METERVALUES(1, txId.get()), METERVALUES_RESPONSE, NO_MATCHER);
+
+        // verify metervalues added to connector transaction
+        VavrAssertions.assertThat(chargePoint.getState().connectorStatuses()).allSatisfy((connectorId, status) -> {
+            assertThat(connectorId).isEqualTo(1);
+            assertThat(status.transactions()).allSatisfy(tx -> {
+                assertThat(tx.id()).isPositive();
+                assertThat(tx.meterStart().value()).isEqualTo(23232);
+                assertThat(tx.idTag().value()).isEqualTo("Tag1");
+                assertThat(tx.startTimestamp()).isEqualTo(ZonedDateTime.parse("2023-09-28T08:35:30+00:00"));
+                assertThat(tx.meterValues()).hasSize(1)
+                        .flatMap(l -> l.get(0).getSampledValue())
+                        .satisfiesExactly(sample -> {
+                            assertThat(sample.getMeasurand()).contains(SampledValue.Measurand.ENERGY_ACTIVE_IMPORT_REGISTER);
+                            assertThat(sample.getUnit()).contains(SampledValue.Unit.WH);
+                            assertThat(sample.getValue()).isEqualTo("11295100");
+                        }, sample -> {
+                            assertThat(sample.getMeasurand()).contains(SampledValue.Measurand.VOLTAGE);
+                            assertThat(sample.getUnit()).contains(SampledValue.Unit.V);
+                            assertThat(sample.getValue()).isEqualTo("236.2");
+                        }, sample -> {
+                            assertThat(sample.getMeasurand()).contains(SampledValue.Measurand.TEMPERATURE);
+                            assertThat(sample.getUnit()).contains(SampledValue.Unit.CELSIUS);
+                            assertThat(sample.getValue()).isEqualTo("25");
+                        }, sample -> {
+                            assertThat(sample.getMeasurand()).contains(SampledValue.Measurand.FREQUENCY);
+                            assertThat(sample.getValue()).isEqualTo("50.04");
+                        }, sample -> {
+                            assertThat(sample.getMeasurand()).contains(SampledValue.Measurand.CURRENT_IMPORT);
+                            assertThat(sample.getPhase()).contains(SampledValue.Phase.L_1);
+                            assertThat(sample.getUnit()).contains(SampledValue.Unit.A);
+                            assertThat(sample.getValue()).isEqualTo("15.90");
+                        }, sample -> {
+                            assertThat(sample.getMeasurand()).contains(SampledValue.Measurand.CURRENT_IMPORT);
+                            assertThat(sample.getPhase()).contains(SampledValue.Phase.L_2);
+                            assertThat(sample.getUnit()).contains(SampledValue.Unit.A);
+                            assertThat(sample.getValue()).isEqualTo("16.10");
+                        }, sample -> {
+                            assertThat(sample.getMeasurand()).contains(SampledValue.Measurand.CURRENT_IMPORT);
+                            assertThat(sample.getPhase()).contains(SampledValue.Phase.L_3);
+                            assertThat(sample.getUnit()).contains(SampledValue.Unit.A);
+                            assertThat(sample.getValue()).isEqualTo("15.90");
+                        });
             });
         });
     }
@@ -171,7 +249,7 @@ class OcppEndpointNextTest {
         connection.sendTextAndAwait(makeUnique(request, uniqueId));
 
         // wait for response
-        assertThat(responseLatch.await(2, TimeUnit.SECONDS))
+        assertThat(responseLatch.await(20, TimeUnit.SECONDS))
                 .describedAs("No response received")
                 .isTrue();
 

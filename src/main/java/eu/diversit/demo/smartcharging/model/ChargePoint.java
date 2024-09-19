@@ -139,10 +139,25 @@ public class ChargePoint {
                             .withCurrentTime(ZonedDateTime.now())
                             .build();
 //            case FirmwareStatusNotification fsn -> {}
-//            case Action.ByChargePoint.METERVALUES metervalues -> {}
+            case MeterValues metervalues -> {
+
+                // only process metervalues with a transaction id
+                // add metervalues to transaction in connector status
+                // Note: assumes a transaction is active
+                metervalues.getTransactionId().ifPresent(txId ->
+                        connectors.compute(metervalues.getConnectorId(), (_, connectorStatus) ->
+                                connectorStatus.addMeterValues(txId, metervalues.getMeterValue())
+                        )
+                );
+
+                yield MeterValuesResponse.builder()
+                        .build();
+            }
             case StartTransaction startTransaction -> {
                 // must verify the validity of the idTag since might have been locally authorized from CP cache
                 var status = allowedTags.contains(startTransaction.getIdTag()) ? IdTagInfo__2.Status.ACCEPTED : IdTagInfo__2.Status.INVALID;
+
+                // TODO: verify no transaction is already active. Otherwise return status 'ConcurrentTx'.
 
                 var txId = transactionIdProvider.nextTransactionId();
 

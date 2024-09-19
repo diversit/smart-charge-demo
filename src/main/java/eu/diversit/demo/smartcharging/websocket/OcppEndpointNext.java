@@ -54,6 +54,8 @@ public class OcppEndpointNext {
     public OcppJsonMessage onMessage(OcppJsonMessage ocppMessage, @PathParam("chargeBoxId") String chargeBoxId) throws IOException {
         System.out.println("On Message (connection " + connection.id() + "): " + ocppMessage);
 
-        return chargePoint.handleOcppMessage(new ChargeBoxId(chargeBoxId), ocppMessage);
+        OcppJsonMessage response = chargePoint.handleOcppMessage(new ChargeBoxId(chargeBoxId), ocppMessage);
+        System.out.println("On Message Response: (connection " + connection.id() + "): " + response);
+        return response;
     }
 }
