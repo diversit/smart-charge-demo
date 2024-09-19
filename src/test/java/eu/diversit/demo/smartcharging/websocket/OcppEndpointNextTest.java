@@ -1,19 +1,20 @@
 package eu.diversit.demo.smartcharging.websocket;
 
 import eu.diversit.demo.smartcharging.model.ChargePoint;
-import eu.diversit.demo.smartcharging.model.ChargePointState;
 import eu.diversit.demo.smartcharging.model.json.ocpp.StatusNotification;
 import io.quarkus.test.common.http.TestHTTPResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.websockets.next.BasicWebSocketConnector;
 import jakarta.inject.Inject;
 import org.assertj.vavr.api.VavrAssertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -48,8 +49,16 @@ class OcppEndpointNextTest {
             \\[3,"UNIQUEID",\\{"currentTime":"([0-9-:.TZ]+)"}]""";
     private static final String STATUS_NOTIFICATION_CONN_0 = """
             [2,"UNIQUEID","StatusNotification",{"connectorId":0,"status":"Available","errorCode":"NoError","info":"","timestamp":"2023-09-28T08:31:30+00:00"}]""";
-    private static final String STATUS_NOTIFICATION_CONN_0_RESPONSE = """
+    private static final String STATUS_NOTIFICATION_RESPONSE = """
             \\[3,"UNIQUEID",\\{}]""";
+    private static final String START_TRANSACTION = """
+            [2,"UNIQUEID","StartTransaction",{"connectorId": 1, "idTag": "Tag1", "meterStart":23232, "timestamp":"2023-09-28T08:35:30+00:00"}]""";
+    private static final String START_TRANSACTION_RESPONSE = """
+            \\[3,"UNIQUEID",\\{"idTagInfo":\\{"status":"Accepted"},"transactionId":1}]""";
+
+    private static final Consumer<Matcher> NO_MATCHER = _ -> {
+    };
+    private final DateTimeFormatter ISO_8601_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss[.SSS]XXX");
 
     @Inject
     BasicWebSocketConnector webSocketConnector;
@@ -59,6 +68,20 @@ class OcppEndpointNextTest {
 
     @Inject
     ChargePoint chargePoint;
+
+    private String createStatusNotification(int connectorId, String status) {
+        return String.format("""
+                        [2,"UNIQUEID","StatusNotification",{"connectorId":%d,"status":"%s","errorCode":"NoError","info":"","timestamp":"%s"}]""",
+                connectorId,
+                status,
+                ZonedDateTime.now().format(ISO_8601_FORMAT)
+        );
+    }
+
+    @BeforeEach
+    public void clearChargePointState() {
+        chargePoint.clearState();
+    }
 
     @Test
     public void handle_bootnotification_call() throws InterruptedException {
@@ -79,20 +102,15 @@ class OcppEndpointNextTest {
 
     @Test
     public void handle_authorize_call() throws InterruptedException {
-        sendWebsocketMessage(AUTHORIZE_ALLOWED, AUTHORIZE_ALLOWED_RESPONSE, _ -> {
-        });
-        sendWebsocketMessage(AUTHORIZE_INVALID, AUTHORIZE_INVALID_RESPONSE, _ -> {
-        });
+        sendWebsocketMessage(AUTHORIZE_ALLOWED, AUTHORIZE_ALLOWED_RESPONSE, NO_MATCHER);
+        sendWebsocketMessage(AUTHORIZE_INVALID, AUTHORIZE_INVALID_RESPONSE, NO_MATCHER);
     }
 
     @Test
     public void handle_statusnotification_call() throws InterruptedException {
-        sendWebsocketMessage(STATUS_NOTIFICATION_CONN_0, STATUS_NOTIFICATION_CONN_0_RESPONSE, _ -> {
-        });
+        sendWebsocketMessage(STATUS_NOTIFICATION_CONN_0, STATUS_NOTIFICATION_RESPONSE, NO_MATCHER);
 
-        ChargePointState state = chargePoint.getState();
-
-        VavrAssertions.assertThat(state.connectorStatuses()).allSatisfy((connectorId, status) -> {
+        VavrAssertions.assertThat(chargePoint.getState().connectorStatuses()).allSatisfy((connectorId, status) -> {
             assertThat(connectorId).isEqualTo(0);
             assertThat(status.transactions()).isEmpty();
             assertThat(status.statuses()).allSatisfy(statusNotification -> {
@@ -103,6 +121,25 @@ class OcppEndpointNextTest {
                 assertThat(statusNotification.getInfo()).contains("");
                 assertThat(statusNotification.getVendorId()).isEmpty();
                 assertThat(statusNotification.getVendorErrorCode()).isEmpty();
+            });
+        });
+    }
+
+    @Test
+    public void handle_starttransaction_call() throws InterruptedException {
+        // send status notification first
+        sendWebsocketMessage(createStatusNotification(1, "Available"), STATUS_NOTIFICATION_RESPONSE, NO_MATCHER);
+
+        // start transaction
+        sendWebsocketMessage(START_TRANSACTION, START_TRANSACTION_RESPONSE, NO_MATCHER);
+
+        VavrAssertions.assertThat(chargePoint.getState().connectorStatuses()).allSatisfy((connectorId, status) -> {
+            assertThat(connectorId).isEqualTo(1);
+            assertThat(status.transactions()).allSatisfy(tx -> {
+                assertThat(tx.id()).isPositive();
+                assertThat(tx.meterStart().value()).isEqualTo(23232);
+                assertThat(tx.idTag().value()).isEqualTo("Tag1");
+                assertThat(tx.startTimestamp()).isEqualTo(ZonedDateTime.parse("2023-09-28T08:35:30+00:00"));
             });
         });
     }

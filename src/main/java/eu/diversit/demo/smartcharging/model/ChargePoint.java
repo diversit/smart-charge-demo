@@ -1,5 +1,6 @@
 package eu.diversit.demo.smartcharging.model;
 
+import eu.diversit.demo.smartcharging.TransactionIdProvider;
 import eu.diversit.demo.smartcharging.model.json.Action;
 import eu.diversit.demo.smartcharging.model.json.OcppJsonMessage;
 import eu.diversit.demo.smartcharging.model.json.ocpp.*;
@@ -7,12 +8,12 @@ import io.vavr.collection.HashMap;
 import io.vavr.control.Option;
 import io.vertx.core.json.JsonObject;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.ZonedDateTime;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static io.vavr.control.Option.some;
 
@@ -23,11 +24,11 @@ public class ChargePoint {
     private BootNotification bootNotification = null;
     private ChargeBoxId chargeBoxId = null;
 
-    private AtomicInteger transactionIdProvider = new AtomicInteger(0);
-
     @ConfigProperty(name = "tags.allowed")
     private java.util.List<String> allowedTags;
 
+    @Inject
+    private TransactionIdProvider transactionIdProvider;
 
     public ChargePointState getState() {
         return new ChargePointState(
@@ -35,6 +36,10 @@ public class ChargePoint {
                 bootNotification,
                 HashMap.ofAll(connectors)
         );
+    }
+
+    public void clearState() {
+        connectors.clear();
     }
 
     /**
@@ -136,13 +141,30 @@ public class ChargePoint {
 //            case FirmwareStatusNotification fsn -> {}
 //            case Action.ByChargePoint.METERVALUES metervalues -> {}
             case StartTransaction startTransaction -> {
+                // must verify the validity of the idTag since might have been locally authorized from CP cache
                 var status = allowedTags.contains(startTransaction.getIdTag()) ? IdTagInfo__2.Status.ACCEPTED : IdTagInfo__2.Status.INVALID;
+
+                var txId = transactionIdProvider.nextTransactionId();
+
+                // only create and save a transaction when status accepted
+                if (IdTagInfo__2.Status.ACCEPTED.equals(status)) {
+                    var transaction = Transaction.create(
+                            txId,
+                            new IdTag(startTransaction.getIdTag()),
+                            new MeterValue(startTransaction.getMeterStart()),
+                            startTransaction.getTimestamp()
+                    );
+
+                    // add transaction to connector status
+                    // Note: assumes a StatusNotification has been received prior to the StartTransaction!
+                    connectors.compute(startTransaction.getConnectorId(), (_, connectorStatus) -> connectorStatus.addTransaction(transaction));
+                }
 
                 yield StartTransactionResponse.builder()
                         .withIdTagInfo(IdTagInfo__2.builder()
                                 .withStatus(status)
                                 .build()
-                        ).withTransactionId(1)
+                        ).withTransactionId(txId) // must always provide txId regardless of IdTag status
                         .build();
             }
             case StatusNotification sn -> {
