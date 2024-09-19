@@ -170,6 +170,7 @@
                     <generateBuilders>true</generateBuilders>
                     <includeConstructors>true</includeConstructors>
                     <includeCopyConstructor>true</includeCopyConstructor>
+                    <inclusionLevel>NON_EMPTY</inclusionLevel>
                     <targetVersion>${maven.compiler.release}</targetVersion>
                     <includeJsr305Annotations>true</includeJsr305Annotations>
                     <includeSetters>false</includeSetters>
