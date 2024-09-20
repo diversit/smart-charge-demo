@@ -1,6 +1,8 @@
 package eu.diversit.demo.smartcharging.websocket;
 
 import eu.diversit.demo.smartcharging.model.ChargePoint;
+import eu.diversit.demo.smartcharging.model.ChargePointState;
+import eu.diversit.demo.smartcharging.model.MeterValue;
 import eu.diversit.demo.smartcharging.model.json.ocpp.SampledValue;
 import eu.diversit.demo.smartcharging.model.json.ocpp.StatusNotification;
 import io.quarkus.test.common.http.TestHTTPResource;
@@ -61,17 +63,22 @@ class OcppEndpointNextTest {
     };
     private static final String METERVALUES_RESPONSE = """
             \\[3,"UNIQUEID",\\{}]""";
-
+    private static final String STOP_TRANSACTION_RESPONSE = """
+            \\[3,"UNIQUEID",\\{"idTagInfo":\\{"status":"Accepted"}}]""";
     private final DateTimeFormatter ISO_8601_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss[.SSS]XXX");
-
     @Inject
     BasicWebSocketConnector webSocketConnector;
-
     @TestHTTPResource("/ocpp")
     URI baseUri;
-
     @Inject
     ChargePoint chargePoint;
+
+    private static String STOP_TRANSACTION(Integer txId) {
+        return String.format("""
+                        [2,"UNIQUEID","StopTransaction",{"transactionId":%d,"idTag":"Tag1","timestamp":"2024-09-19T06:57:38+00:00","meterStop":459023,"reason":"Local"}]""",
+                txId
+        );
+    }
 
     private static String METERVALUES(Integer connector, Integer tx) {
         return String.format("""
@@ -122,10 +129,10 @@ class OcppEndpointNextTest {
     public void handle_statusnotification_call() throws InterruptedException {
         sendWebsocketMessage(STATUS_NOTIFICATION_CONN_0, STATUS_NOTIFICATION_RESPONSE, NO_MATCHER);
 
-        VavrAssertions.assertThat(chargePoint.getState().connectorStatuses()).allSatisfy((connectorId, status) -> {
-            assertThat(connectorId).isEqualTo(0);
-            assertThat(status.transactions()).isEmpty();
-            assertThat(status.statuses()).allSatisfy(statusNotification -> {
+        ChargePointState state = chargePoint.getState();
+        VavrAssertions.assertThat(state.connectorStatuses()).allSatisfy((connectorId, statusList) -> {
+            assertThat(connectorId.value()).isEqualTo(0);
+            assertThat(statusList).allSatisfy(statusNotification -> {
                 assertThat(statusNotification.getStatus()).isEqualTo(StatusNotification.Status.AVAILABLE);
                 assertThat(statusNotification.getConnectorId()).isEqualTo(0);
                 assertThat(statusNotification.getErrorCode()).isEqualTo(StatusNotification.ErrorCode.NO_ERROR);
@@ -135,6 +142,7 @@ class OcppEndpointNextTest {
                 assertThat(statusNotification.getVendorErrorCode()).isEmpty();
             });
         });
+        assertThat(state.transactions()).isEmpty();
     }
 
     @Test
@@ -148,17 +156,15 @@ class OcppEndpointNextTest {
             assertThat(txId).isPositive();
         });
 
-        VavrAssertions.assertThat(chargePoint.getState().connectorStatuses()).allSatisfy((connectorId, status) -> {
-            assertThat(connectorId).isEqualTo(1);
-            assertThat(status.transactions()).allSatisfy(tx -> {
-                assertThat(tx.id()).isPositive();
-                assertThat(tx.meterStart().value()).isEqualTo(23232);
-                assertThat(tx.idTag().value()).isEqualTo("Tag1");
-                assertThat(tx.startTimestamp()).isEqualTo(ZonedDateTime.parse("2023-09-28T08:35:30+00:00"));
-                assertThat(tx.meterStop()).isEmpty();
-                assertThat(tx.meterValues()).isEmpty();
-                assertThat(tx.stopTimestamp()).isEmpty();
-            });
+        VavrAssertions.assertThat(chargePoint.getState().transactions()).allSatisfy(tx -> {
+            assertThat(tx.id().value()).isPositive();
+            assertThat(tx.connector().value()).isEqualTo(1);
+            assertThat(tx.meterStart().value()).isEqualTo(23232);
+            assertThat(tx.idTag().value()).isEqualTo("Tag1");
+            assertThat(tx.startTimestamp()).isEqualTo(ZonedDateTime.parse("2023-09-28T08:35:30+00:00"));
+            assertThat(tx.meterStop()).isEmpty();
+            assertThat(tx.meterValues()).isEmpty();
+            assertThat(tx.stopTimestamp()).isEmpty();
         });
     }
 
@@ -178,47 +184,78 @@ class OcppEndpointNextTest {
         sendWebsocketMessage(METERVALUES(1, txId.get()), METERVALUES_RESPONSE, NO_MATCHER);
 
         // verify metervalues added to connector transaction
-        VavrAssertions.assertThat(chargePoint.getState().connectorStatuses()).allSatisfy((connectorId, status) -> {
-            assertThat(connectorId).isEqualTo(1);
-            assertThat(status.transactions()).allSatisfy(tx -> {
-                assertThat(tx.id()).isPositive();
-                assertThat(tx.meterStart().value()).isEqualTo(23232);
-                assertThat(tx.idTag().value()).isEqualTo("Tag1");
-                assertThat(tx.startTimestamp()).isEqualTo(ZonedDateTime.parse("2023-09-28T08:35:30+00:00"));
-                assertThat(tx.meterValues()).hasSize(1)
-                        .flatMap(l -> l.get(0).getSampledValue())
-                        .satisfiesExactly(sample -> {
-                            assertThat(sample.getMeasurand()).contains(SampledValue.Measurand.ENERGY_ACTIVE_IMPORT_REGISTER);
-                            assertThat(sample.getUnit()).contains(SampledValue.Unit.WH);
-                            assertThat(sample.getValue()).isEqualTo("11295100");
-                        }, sample -> {
-                            assertThat(sample.getMeasurand()).contains(SampledValue.Measurand.VOLTAGE);
-                            assertThat(sample.getUnit()).contains(SampledValue.Unit.V);
-                            assertThat(sample.getValue()).isEqualTo("236.2");
-                        }, sample -> {
-                            assertThat(sample.getMeasurand()).contains(SampledValue.Measurand.TEMPERATURE);
-                            assertThat(sample.getUnit()).contains(SampledValue.Unit.CELSIUS);
-                            assertThat(sample.getValue()).isEqualTo("25");
-                        }, sample -> {
-                            assertThat(sample.getMeasurand()).contains(SampledValue.Measurand.FREQUENCY);
-                            assertThat(sample.getValue()).isEqualTo("50.04");
-                        }, sample -> {
-                            assertThat(sample.getMeasurand()).contains(SampledValue.Measurand.CURRENT_IMPORT);
-                            assertThat(sample.getPhase()).contains(SampledValue.Phase.L_1);
-                            assertThat(sample.getUnit()).contains(SampledValue.Unit.A);
-                            assertThat(sample.getValue()).isEqualTo("15.90");
-                        }, sample -> {
-                            assertThat(sample.getMeasurand()).contains(SampledValue.Measurand.CURRENT_IMPORT);
-                            assertThat(sample.getPhase()).contains(SampledValue.Phase.L_2);
-                            assertThat(sample.getUnit()).contains(SampledValue.Unit.A);
-                            assertThat(sample.getValue()).isEqualTo("16.10");
-                        }, sample -> {
-                            assertThat(sample.getMeasurand()).contains(SampledValue.Measurand.CURRENT_IMPORT);
-                            assertThat(sample.getPhase()).contains(SampledValue.Phase.L_3);
-                            assertThat(sample.getUnit()).contains(SampledValue.Unit.A);
-                            assertThat(sample.getValue()).isEqualTo("15.90");
-                        });
-            });
+        VavrAssertions.assertThat(chargePoint.getState().connectorStatuses()).allSatisfy((connectorId, statuses) -> {
+            assertThat(connectorId.value()).isEqualTo(1);
+            assertThat(statuses).hasSize(1);
+        });
+        assertThat(chargePoint.getState().transactions()).allSatisfy(tx -> {
+            assertThat(tx.id().value()).isPositive();
+            assertThat(tx.meterStart().value()).isEqualTo(23232);
+            assertThat(tx.idTag().value()).isEqualTo("Tag1");
+            assertThat(tx.startTimestamp()).isEqualTo(ZonedDateTime.parse("2023-09-28T08:35:30+00:00"));
+            assertThat(tx.meterValues()).hasSize(1)
+                    .flatMap(l -> l.get(0).getSampledValue())
+                    .satisfiesExactly(sample -> {
+                        assertThat(sample.getMeasurand()).contains(SampledValue.Measurand.ENERGY_ACTIVE_IMPORT_REGISTER);
+                        assertThat(sample.getUnit()).contains(SampledValue.Unit.WH);
+                        assertThat(sample.getValue()).isEqualTo("11295100");
+                    }, sample -> {
+                        assertThat(sample.getMeasurand()).contains(SampledValue.Measurand.VOLTAGE);
+                        assertThat(sample.getUnit()).contains(SampledValue.Unit.V);
+                        assertThat(sample.getValue()).isEqualTo("236.2");
+                    }, sample -> {
+                        assertThat(sample.getMeasurand()).contains(SampledValue.Measurand.TEMPERATURE);
+                        assertThat(sample.getUnit()).contains(SampledValue.Unit.CELSIUS);
+                        assertThat(sample.getValue()).isEqualTo("25");
+                    }, sample -> {
+                        assertThat(sample.getMeasurand()).contains(SampledValue.Measurand.FREQUENCY);
+                        assertThat(sample.getValue()).isEqualTo("50.04");
+                    }, sample -> {
+                        assertThat(sample.getMeasurand()).contains(SampledValue.Measurand.CURRENT_IMPORT);
+                        assertThat(sample.getPhase()).contains(SampledValue.Phase.L_1);
+                        assertThat(sample.getUnit()).contains(SampledValue.Unit.A);
+                        assertThat(sample.getValue()).isEqualTo("15.90");
+                    }, sample -> {
+                        assertThat(sample.getMeasurand()).contains(SampledValue.Measurand.CURRENT_IMPORT);
+                        assertThat(sample.getPhase()).contains(SampledValue.Phase.L_2);
+                        assertThat(sample.getUnit()).contains(SampledValue.Unit.A);
+                        assertThat(sample.getValue()).isEqualTo("16.10");
+                    }, sample -> {
+                        assertThat(sample.getMeasurand()).contains(SampledValue.Measurand.CURRENT_IMPORT);
+                        assertThat(sample.getPhase()).contains(SampledValue.Phase.L_3);
+                        assertThat(sample.getUnit()).contains(SampledValue.Unit.A);
+                        assertThat(sample.getValue()).isEqualTo("15.90");
+                    });
+        });
+    }
+
+    @Test
+    public void handle_stoptransaction_call() throws InterruptedException {
+        // send status notification first
+        sendWebsocketMessage(STATUSNOTIFICATION(1, "Available"), STATUS_NOTIFICATION_RESPONSE, NO_MATCHER);
+
+        // start transaction
+        var txId = new AtomicInteger(0);
+        sendWebsocketMessage(START_TRANSACTION, START_TRANSACTION_RESPONSE, matcher -> {
+            // get transaction id from response
+            txId.set(Integer.parseInt(matcher.group(1)));
+        });
+
+        sendWebsocketMessage(STOP_TRANSACTION(txId.get()), STOP_TRANSACTION_RESPONSE, NO_MATCHER);
+
+        // verify transaction has stopped
+        VavrAssertions.assertThat(chargePoint.getState().connectorStatuses()).allSatisfy((connectorId, statuses) -> {
+            assertThat(connectorId.value()).isEqualTo(1);
+            assertThat(statuses).hasSize(1);
+        });
+        assertThat(chargePoint.getState().transactions()).allSatisfy(tx -> {
+            assertThat(tx.id().value()).isPositive();
+            assertThat(tx.meterStart().value()).isEqualTo(23232);
+            assertThat(tx.idTag().value()).isEqualTo("Tag1");
+            assertThat(tx.startTimestamp()).isEqualTo(ZonedDateTime.parse("2023-09-28T08:35:30+00:00"));
+            assertThat(tx.meterStop()).map(MeterValue::value).contains(459023);
+            assertThat(tx.meterValues()).isEmpty();
+            assertThat(tx.stopTimestamp()).contains(ZonedDateTime.parse("2024-09-19T06:57:38+00:00"));
         });
     }
 
