@@ -459,7 +459,7 @@
       _websocket.send(Auth);
     }
 
-    function startTransaction(connId = parseInt($("#CUID").val()), idTag) {
+    function startTransaction(connId = parseInt($("#CUID").val()), idTag = $("#TAG").val()) {
       sessionStorage.setItem("LastAction", "startTransaction");
       $(".indicator").hide();
       $("#green").show();
@@ -482,7 +482,7 @@
       _websocket.send(strtT);
     }
 
-    function stopTransaction(idTag) {
+    function stopTransaction(idTag = $("#TAG").val()) {
       sessionStorage.setItem("LastAction", "stopTransaction");
       $(".indicator").hide();
       connector_locked = false;
