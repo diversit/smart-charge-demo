@@ -1,5 +1,6 @@
 package eu.diversit.demo.smartcharging.model;
 
+import eu.diversit.demo.smartcharging.model.json.ocpp.SampledValue;
 import eu.diversit.demo.smartcharging.model.json.ocpp.StopTransaction;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
@@ -76,5 +77,41 @@ public record Transaction(TransactionId id,
                 some(timestamp),
                 reason
         );
+    }
+
+    /**
+     * Returns the latest meter values either from the meterStop
+     * or from the last received meter value
+     * or None when no meter values has been received yet.
+     *
+     * @return The latest meter value
+     */
+    public Option<MeterValue> latestMeterValue() {
+
+        return meterStop.orElse(() -> meterValues
+                .headOption()
+                .flatMap(meterValuesList -> meterValuesList
+                        .headOption()
+                        .map(mv ->
+                                List.ofAll(mv.getSampledValue())
+                                        .filter(sv -> Option.ofOptional(sv.getMeasurand()).exists(m -> m == SampledValue.Measurand.ENERGY_ACTIVE_IMPORT_REGISTER))
+                                        .head()
+                        ).map(sv -> new MeterValue(Integer.parseInt(sv.getValue())))
+                )
+        );
+    }
+
+
+    /**
+     * Gets the latest meter values either from the meterStop or from the last received meter value.
+     * Returns difference between latest meter value and meterStart value.
+     *
+     * @return The total energy charged in this transaction
+     */
+    public Integer totalCharged() {
+
+        return latestMeterValue()
+                .map(mv -> mv.value() - meterStart.value())
+                .getOrElse(0);
     }
 }

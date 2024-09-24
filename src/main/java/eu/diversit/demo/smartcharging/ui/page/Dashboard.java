@@ -15,9 +15,6 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import eu.diversit.demo.smartcharging.model.*;
 import eu.diversit.demo.smartcharging.model.json.ocpp.BootNotification;
-import eu.diversit.demo.smartcharging.model.json.ocpp.SampledValue;
-import io.vavr.collection.List;
-import io.vavr.control.Option;
 
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
@@ -94,28 +91,7 @@ public class Dashboard extends VerticalLayout {
         transactionsGrid.addColumn(t -> formatTimestamp(t.startTimestamp())).setHeader("Start on");
         transactionsGrid.addColumn(t -> t.meterStop().map(MeterValue::value).getOrNull()).setHeader("Stop value");
         transactionsGrid.addColumn(t -> t.stopTimestamp().map(this::formatTimestamp).getOrNull()).setHeader("Stop timestamp");
-        transactionsGrid.addColumn(t ->
-                // get total charged from 'stop' minus 'start' meter values
-                t.meterStop()
-                        .map(stopValue -> stopValue.value() - t.meterStart().value())
-                        // or use the latest metervalue
-                        .getOrElse(() -> {
-                            // find imported energy value
-                            var importedEnergyValue = t.meterValues()
-                                    .headOption() // get latest value
-                                    .flatMap(mvl -> mvl
-                                            .headOption() // get latest one
-                                            .map(mv -> // get ENERGY_ACTIVE_IMPORT_REGISTER value
-                                                    List.ofAll(mv.getSampledValue())
-                                                            .filter(sv -> Option.ofOptional(sv.getMeasurand()).exists(m -> m == SampledValue.Measurand.ENERGY_ACTIVE_IMPORT_REGISTER))
-                                                            .head()
-                                            ).map(sv -> Integer.parseInt(sv.getValue()))); // parse value to integer
-
-                            // when value available, calculate charged. Otherwise null
-                            return importedEnergyValue.map(v -> v - t.meterStart().value())
-                                    .getOrElse(0);
-                        })
-        ).setHeader("Total charged");
+        transactionsGrid.addColumn(Transaction::totalCharged).setHeader("Total charged");
         transactionsGrid.getColumns().forEach(col -> {
             col.setAutoWidth(true);
         });
