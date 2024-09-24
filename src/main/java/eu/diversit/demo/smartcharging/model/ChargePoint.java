@@ -4,6 +4,7 @@ import eu.diversit.demo.smartcharging.TransactionIdProvider;
 import eu.diversit.demo.smartcharging.model.json.Action;
 import eu.diversit.demo.smartcharging.model.json.OcppJsonMessage;
 import eu.diversit.demo.smartcharging.model.json.ocpp.*;
+import eu.diversit.demo.smartcharging.ui.page.Broadcaster;
 import io.vavr.collection.HashMap;
 import io.vavr.collection.List;
 import io.vavr.control.Either;
@@ -23,6 +24,7 @@ import static io.vavr.control.Option.some;
 @ApplicationScoped
 public class ChargePoint {
     private static final Logger LOG = LoggerFactory.getLogger(ChargePoint.class);
+    private final Broadcaster broadcaster;
 
     private java.util.Map<Connector, List<StatusNotification>> connectors = new java.util.HashMap<>();
     private List<Transaction> transactions = List.empty();
@@ -35,10 +37,14 @@ public class ChargePoint {
     @Inject
     private TransactionIdProvider transactionIdProvider;
 
+    public ChargePoint(Broadcaster broadcaster) {
+        this.broadcaster = broadcaster;
+    }
+
     public ChargePointState getState() {
         return new ChargePointState(
-                chargeBoxId,
-                bootNotification,
+                Option.of(chargeBoxId),
+                Option.of(bootNotification),
                 HashMap.ofAll(connectors),
                 transactions
         );
@@ -97,6 +103,7 @@ public class ChargePoint {
                                                 ))
                                         ))
                                         .flatMap(this::handleCall) // handle call
+                                        .peek(_ -> broadcaster.broadcast(new Broadcaster.ChargePointStateUpdate(getState())))
                                         .map(result -> // return result
                                                 (OcppJsonMessage) new OcppJsonMessage.CallResult(
                                                         messageId,
@@ -166,7 +173,7 @@ public class ChargePoint {
                         .ifPresent(txId ->
                                 transactions.find(t -> t.id().equals(txId))
                                         .peek(t -> {
-                                            var updatedTransaction = t.addMeterValues(metervalues.getMeterValue());
+                                            var updatedTransaction = t.addMeterValues(List.ofAll(metervalues.getMeterValue()));
                                             transactions = transactions.replace(t, updatedTransaction);
                                         })
                         );
@@ -231,6 +238,7 @@ public class ChargePoint {
             }
             case StopTransaction stoptransaction ->
                     transactions.find(t -> t.id().equals(TransactionId.of(stoptransaction.getTransactionId())))
+                            .filter(t -> t.stopReason().isEmpty()) // transaction should not be stopped already
                             .toEither(() -> // error when transaction with id is not found
                                     new ProcessingCallError(
                                             some("Transaction not found with id " + stoptransaction.getTransactionId()),

@@ -14,6 +14,8 @@ public record Transaction(TransactionId id,
                           IdTag idTag,
                           MeterValue meterStart,
                           ZonedDateTime startTimestamp,
+                          // each measurement contains a list of meter values
+                          // and each meter value may have multiple sample values for different measurands
                           List<List<eu.diversit.demo.smartcharging.model.json.ocpp.MeterValue>> meterValues,
                           Option<MeterValue> meterStop,
                           Option<ZonedDateTime> stopTimestamp,
@@ -40,14 +42,14 @@ public record Transaction(TransactionId id,
         return Objects.hashCode(id);
     }
 
-    public Transaction addMeterValues(java.util.List<eu.diversit.demo.smartcharging.model.json.ocpp.MeterValue> newMeterValues) {
+    public Transaction addMeterValues(List<eu.diversit.demo.smartcharging.model.json.ocpp.MeterValue> newMeterValues) {
         return new Transaction(
                 id,
                 connector,
                 idTag,
                 meterStart,
                 startTimestamp,
-                meterValues.append(List.ofAll(newMeterValues)),
+                meterValues.prepend(newMeterValues), // latest on top
                 meterStop,
                 stopTimestamp,
                 stopReason

@@ -10,6 +10,10 @@ import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 
+/**
+ * Overall web application layout
+ * containing a header, menu and side panel.
+ */
 public class MainLayout extends AppLayout {
 
     public MainLayout() {
