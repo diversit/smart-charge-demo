@@ -2,15 +2,18 @@ package eu.diversit.demo.smartcharging.rest;
 
 import eu.diversit.demo.smartcharging.model.ChargeBoxId;
 import eu.diversit.demo.smartcharging.model.ChargePoint;
+import eu.diversit.demo.smartcharging.model.Connector;
 import eu.diversit.demo.smartcharging.model.MeterValue;
+import eu.diversit.demo.smartcharging.model.json.ocpp.StatusNotification;
 import io.vavr.Tuple;
+import io.vavr.collection.HashMap;
+import io.vavr.collection.List;
 import io.vavr.collection.Map;
-import io.vavr.control.Option;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 
-import java.time.ZonedDateTime;
+import java.util.function.Function;
 
 @Path("/api")
 public class RestApi {
@@ -26,58 +29,61 @@ public class RestApi {
         var transactions = state.transactions();
 
         var connectors = state.connectorStatuses()
+                .filter((conn, _) -> conn.value() > 0) // exclude connector 0
                 .map((conn, statuses) -> {
-                    var connector = "connector" + conn.value();
                     var lastestStatus = statuses.head();
 
-                    // find latest transaction for given connector
-                    var lastConnectorTransaction = transactions.find(t -> t.connector().equals(conn))
-                            .map(t -> new TransactionDto(
-                                    t.id().value(),
-                                    t.idTag().value(),
-                                    t.meterStart().value(),
-                                    t.latestMeterValue().map(MeterValue::value).getOrNull(),
-                                    t.totalCharged(),
-                                    t.startTimestamp(),
-                                    t.stopTimestamp().getOrNull()
-                            ));
+                    Map<String, Object> attributes = HashMap.empty();
 
-                    return Tuple.of(connector, new ConnectorStatusDto(
+                    // find latest transaction for given connector
+                    attributes = attributes.merge(
+                            transactions.find(t -> t.connector().equals(conn))
+                                    .map(t ->
+                                            HashMap.<String, Object>of(
+                                                    "txId", t.id().value(),
+                                                    "idTag", t.idTag().value(),
+                                                    "meterStart", t.meterStart().value(),
+                                                    "lastMeterValue", t.latestMeterValue().map(MeterValue::value).getOrNull(),
+                                                    "totalCharged", t.totalCharged(),
+                                                    "txStartTimestamp", t.startTimestamp().toInstant().toEpochMilli(),
+                                                    "txStopTimestamp", t.stopTimestamp().map(zdt -> zdt.toInstant().toEpochMilli()).getOrNull()
+                                            )).getOrElse(HashMap.empty()));
+
+                    attributes = attributes.put("timestamp", lastestStatus.getTimestamp().map(zdt -> zdt.toInstant().toEpochMilli()).orElse(null));
+
+                    return Tuple.of(conn.value(), new ConnectorStatusDto(
                             lastestStatus.getStatus().toString(),
-                            lastestStatus.getTimestamp().orElse(null),
-                            lastConnectorTransaction
+                            attributes
                     ));
                 });
 
-        var dto = new ChargePointStateDto(
+        return new ChargePointStateDto(
                 state.chargeBoxId().map(ChargeBoxId::value).getOrElse("Not connected"),
+                getConnector0StatusValue(state.connectorStatuses(), sn -> sn.getStatus().value()),
+                getConnector0StatusValue(state.connectorStatuses(), sn -> sn.getTimestamp().map(zdt -> zdt.toInstant().toEpochMilli()).orElse(null)),
                 connectors
         );
+    }
 
-        return dto;
+    private <T> T getConnector0StatusValue(Map<Connector, List<StatusNotification>> connectorStatuses,
+                                           Function<StatusNotification, T> getValue) {
+        return connectorStatuses.get(Connector.of(0))
+                .flatMap(statuses -> statuses.headOption())
+                .map(getValue)
+                .getOrNull();
     }
 
     public record ChargePointStateDto(
             String chargePointId,
-            Map<String, ConnectorStatusDto> connectors
+            String status,
+            Long timestamp,
+            Map<Integer, ConnectorStatusDto> connectors
     ) {
     }
 
     public record ConnectorStatusDto(
             String status,
-            ZonedDateTime timestamp,
-            Option<TransactionDto> transaction
-    ) {
-    }
-
-    public record TransactionDto(
-            Integer id,
-            String idTag,
-            Integer meterStart,
-            Integer lastMeterValue,
-            Integer totalCharged,
-            ZonedDateTime startedAt,
-            ZonedDateTime stoppedAt
+            Map<String, Object> attributes
     ) {
     }
 }
