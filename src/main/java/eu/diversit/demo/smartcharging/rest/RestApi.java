@@ -11,8 +11,12 @@ import io.vavr.collection.List;
 import io.vavr.collection.Map;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
+import org.jboss.resteasy.reactive.RestPath;
+import org.jboss.resteasy.reactive.RestResponse;
 
+import java.math.BigDecimal;
 import java.util.function.Function;
 
 @Path("/api")
@@ -20,6 +24,25 @@ public class RestApi {
 
     @Inject
     private ChargePoint chargePoint;
+
+    /**
+     * Set charging limit on the current transaction.
+     * If the new limit is 0, the transaction will be stopped.
+     * If no transaction is started yet, a new transaction is started.
+     */
+    @PUT
+    @Path("/chargepoint/{connectorNr}/chargeLimit")
+    public RestResponse<Object> setChargeLimit(@RestPath Integer connectorNr,
+                                               BigDecimal limit) {
+        if (connectorNr == 0) {
+            return RestResponse.ResponseBuilder.create(RestResponse.Status.BAD_REQUEST)
+                    .entity("Connector 0 not allowed")
+                    .build();
+        }
+
+        chargePoint.setChargingLimit(Connector.of(connectorNr), limit);
+        return RestResponse.ok();
+    }
 
     @GET
     @Path("/chargepoint")
@@ -43,7 +66,7 @@ public class RestApi {
                                                     "txId", t.id().value(),
                                                     "idTag", t.idTag().value(),
                                                     "meterStart", t.meterStart().value(),
-                                                    "lastMeterValue", t.latestMeterValue().map(MeterValue::value).getOrNull(),
+                                                    "lastMeterValue", t.latestMeterValue().map(MeterValue::value).getOrElse(0),
                                                     "totalCharged", t.totalCharged(),
                                                     "txStartTimestamp", t.startTimestamp().toInstant().toEpochMilli(),
                                                     "txStopTimestamp", t.stopTimestamp().map(zdt -> zdt.toInstant().toEpochMilli()).getOrNull()

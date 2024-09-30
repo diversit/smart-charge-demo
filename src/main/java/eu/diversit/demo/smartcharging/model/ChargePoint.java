@@ -2,13 +2,16 @@ package eu.diversit.demo.smartcharging.model;
 
 import eu.diversit.demo.smartcharging.TransactionIdProvider;
 import eu.diversit.demo.smartcharging.model.json.Action;
+import eu.diversit.demo.smartcharging.model.json.DefaultChargingProfiles;
 import eu.diversit.demo.smartcharging.model.json.OcppJsonMessage;
 import eu.diversit.demo.smartcharging.model.json.ocpp.*;
 import eu.diversit.demo.smartcharging.ui.page.Broadcaster;
+import eu.diversit.demo.smartcharging.websocket.WebSocketSender;
 import io.vavr.collection.HashMap;
 import io.vavr.collection.List;
 import io.vavr.control.Either;
 import io.vavr.control.Option;
+import io.vavr.control.Try;
 import io.vertx.core.json.JsonObject;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -16,6 +19,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 
 import static io.vavr.control.Option.none;
@@ -37,9 +41,16 @@ public class ChargePoint {
     @Inject
     private TransactionIdProvider transactionIdProvider;
 
+    @Inject
+    private WebSocketSender outgoingMessages;
+
+    // save the last call so can be used when receiving a response
+    private WebSocketSender.SendAction lastCall = null;
+
     public ChargePoint(Broadcaster broadcaster) {
         this.broadcaster = broadcaster;
     }
+
 
     public ChargePointState getState() {
         return new ChargePointState(
@@ -53,6 +64,58 @@ public class ChargePoint {
     public void clearState() {
         connectors.clear();
         transactions = List.empty();
+    }
+
+    /**
+     * Set a command to the charge point websocket and store the send command
+     * to be able to handle the response.
+     *
+     * @param action
+     * @param payload
+     */
+    private void sendCommand(Action.ByCentralSystem action, Option<Object> payload) {
+        outgoingMessages.sendCommand(chargeBoxId, action, payload)
+                .peek(callSend -> {
+                    lastCall = callSend;
+                });
+    }
+
+    /**
+     * Set the charging limit on an active transaction on given connector.
+     * If no transaction is active, a new transaction is started
+     *
+     * @param connector
+     * @param limit
+     */
+    public void setChargingLimit(Connector connector, BigDecimal limit) {
+
+        // check transaction is active on given connector
+        transactions.find(tx -> tx.connector().equals(connector) && tx.stopTimestamp().isEmpty())
+                .peek(activeTransaction -> {
+                    if (BigDecimal.ZERO.compareTo(limit) == 0) {
+                        // stop active transaction
+                        sendCommand(Action.ByCentralSystem.REMOTESTOPTRANSACTION, some(RemoteStopTransaction.builder()
+                                .withTransactionId(activeTransaction.id().value())
+                                .build()
+                        ));
+                    } else {
+                        // create a SetChargingProfile
+                        sendCommand(Action.ByCentralSystem.SETCHARGINGPROFILE, some(DefaultChargingProfiles.createSetChargingProfile(connector, activeTransaction, limit)
+                        ));
+                    }
+                })
+                .onEmpty(() -> {
+                    if (BigDecimal.ZERO.compareTo(limit) < 0) { // when limit > 0
+                        // Start a remote transaction with a charging profile
+                        sendCommand(Action.ByCentralSystem.REMOTESTARTTRANSACTION, some(RemoteStartTransaction.builder()
+                                .withConnectorId(connector.value())
+                                .withIdTag("Tag1") // Must provide a valid id which will be used for authentication
+                                .withChargingProfile(DefaultChargingProfiles.createChargingProfile(limit))
+                                .build()
+                        ));
+                    }
+                });
+
     }
 
     /**
@@ -118,7 +181,32 @@ public class ChargePoint {
                                                 ));
                     };
             case OcppJsonMessage.CallResult(var messageId, var payload) -> {
-                LOG.warn("Handling of CallResult not implemented yet");
+                if (lastCall.messageId().equals(messageId)) {
+                    // received response to last call
+                    switch (lastCall.action()) {
+                        case Action.ByCentralSystem.REMOTESTARTTRANSACTION ->
+                                decodePayload(payload, RemoteStopTransactionResponse.class)
+                                        .peek(response -> {
+                                            LOG.info("RemoteStartTransaction status: {}", response.getStatus());
+                                        });
+
+                        case Action.ByCentralSystem.REMOTESTOPTRANSACTION ->
+                                decodePayload(payload, RemoteStopTransactionResponse.class)
+                                        .peek(response -> {
+                                            LOG.info("RemoteStopTransaction status: {}", response.getStatus());
+                                        });
+
+                        case Action.ByCentralSystem.SETCHARGINGPROFILE ->
+                                decodePayload(payload, SetChargingProfileResponse.class)
+                                        .peek(response -> {
+                                            LOG.info("SetChargingProfile status: {}", response.getStatus());
+                                        });
+
+                        default -> LOG.warn("Handling of CallResult to {} not implemented yet", lastCall.action());
+                    }
+                } else {
+                    LOG.warn("Received unexpected message result");
+                }
                 yield null; // no reply to a CallResult
             }
             case OcppJsonMessage.CallError(var messageId, var errorCode, var errorDescription, var errorDetails) -> {
@@ -126,6 +214,12 @@ public class ChargePoint {
                 yield null; // no reply to a CallError
             }
         };
+    }
+
+    private <T> Try<T> decodePayload(Option<JsonObject> payload, Class<T> expectedType) {
+        return payload.toTry()
+                .mapTry(p -> p.mapTo(expectedType))
+                .onFailure(throwable -> LOG.error("Failed to decode payload to type {}", expectedType, throwable));
     }
 
     private Either<ProcessingCallError, Object> handleCall(Object decodedPayload) {
