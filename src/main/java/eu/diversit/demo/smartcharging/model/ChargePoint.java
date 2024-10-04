@@ -115,7 +115,6 @@ public class ChargePoint {
                         ));
                     }
                 });
-
     }
 
     /**
@@ -248,15 +247,14 @@ public class ChargePoint {
                                 .build()
                 );
             }
-//            case DataTransfer dt -> {}
-//            case DiagnosticsStatusNotification dsn -> {}
+
             case Heartbeat _ -> // return response with current time
                     Either.right(
                             HeartbeatResponse.builder()
                                     .withCurrentTime(ZonedDateTime.now())
                                     .build()
                     );
-//            case FirmwareStatusNotification fsn -> {}
+
             case MeterValues metervalues -> {
 
                 // only process metervalues with a transaction id
@@ -322,6 +320,7 @@ public class ChargePoint {
                         .build()
                 );
             }
+
             case StatusNotification sn -> {
                 // save the status for the connector
                 connectors.compute(Connector.of(sn.getConnectorId()), (_, statusNotifications) -> statusNotifications == null ? List.of(sn) : statusNotifications.prepend(sn));
@@ -330,6 +329,7 @@ public class ChargePoint {
                         StatusNotificationResponse.builder().build()
                 );
             }
+
             case StopTransaction stoptransaction ->
                     transactions.find(t -> t.id().equals(TransactionId.of(stoptransaction.getTransactionId())))
                             .filter(t -> t.stopReason().isEmpty()) // transaction should not be stopped already

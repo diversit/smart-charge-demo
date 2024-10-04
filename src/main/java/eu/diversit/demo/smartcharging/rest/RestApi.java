@@ -26,24 +26,8 @@ public class RestApi {
     private ChargePoint chargePoint;
 
     /**
-     * Set charging limit on the current transaction.
-     * If the new limit is 0, the transaction will be stopped.
-     * If no transaction is started yet, a new transaction is started.
+     * @return The state of the chargepoint as Json
      */
-    @PUT
-    @Path("/chargepoint/{connectorNr}/chargeLimit")
-    public RestResponse<Object> setChargeLimit(@RestPath Integer connectorNr,
-                                               BigDecimal limit) {
-        if (connectorNr == 0) {
-            return RestResponse.ResponseBuilder.create(RestResponse.Status.BAD_REQUEST)
-                    .entity("Connector 0 not allowed")
-                    .build();
-        }
-
-        chargePoint.setChargingLimit(Connector.of(connectorNr), limit);
-        return RestResponse.ok();
-    }
-
     @GET
     @Path("/chargepoint")
     public ChargePointStateDto getChargePointState() {
@@ -86,6 +70,25 @@ public class RestApi {
                 getConnector0StatusValue(state.connectorStatuses(), sn -> sn.getTimestamp().map(zdt -> zdt.toInstant().toEpochMilli()).orElse(null)),
                 connectors
         );
+    }
+
+    /**
+     * Set charging limit on the current transaction.
+     * If the new limit is 0, the transaction will be stopped.
+     * If no transaction is started yet, a new transaction is started.
+     */
+    @PUT
+    @Path("/chargepoint/{connectorNr}/chargeLimit")
+    public RestResponse<Object> setChargeLimit(@RestPath Integer connectorNr,
+                                               BigDecimal limit) {
+        if (connectorNr == 0) {
+            return RestResponse.ResponseBuilder.create(RestResponse.Status.BAD_REQUEST)
+                    .entity("Connector 0 not allowed")
+                    .build();
+        }
+
+        chargePoint.setChargingLimit(Connector.of(connectorNr), limit);
+        return RestResponse.ok();
     }
 
     private <T> T getConnector0StatusValue(Map<Connector, List<StatusNotification>> connectorStatuses,

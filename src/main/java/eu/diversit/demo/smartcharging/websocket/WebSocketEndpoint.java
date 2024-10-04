@@ -16,7 +16,7 @@ import java.io.IOException;
  * otherwise the connections get closed directly.
  */
 @WebSocket(path = "/ocpp/{chargeBoxId}")
-public class OcppEndpointNext {
+public class WebSocketEndpoint {
 
     @Inject
     OpenConnections connections;

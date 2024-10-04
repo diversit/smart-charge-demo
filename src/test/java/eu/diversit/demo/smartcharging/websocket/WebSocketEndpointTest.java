@@ -31,7 +31,7 @@ import static org.assertj.core.api.Assertions.within;
 
 @QuarkusTest
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class OcppEndpointNextTest {
+class WebSocketEndpointTest {
 
     // Request and response json's used for testing.
     // Note: the responses are used in a pattern match and therefore need some '\\' to make the regex parser happy
