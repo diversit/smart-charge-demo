@@ -9,9 +9,12 @@ import io.vavr.control.Option;
 import io.vertx.core.json.JsonObject;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class WebSocketSender {
+    private static final Logger LOG = LoggerFactory.getLogger(WebSocketSender.class);
 
     @Inject
     OpenConnections openConnections;
@@ -35,11 +38,14 @@ public class WebSocketSender {
                             messageId,
                             action,
                             payload.map(JsonObject::mapFrom)
-                    );
+                    ).toJsonArray();
+
                     conn.sendTextAndAwait(call);
+                    LOG.debug("Send: {}", call);
 
                     return new SendAction(action, messageId);
-                });
+                })
+                .onEmpty(() -> LOG.warn("No connection found for chargebox: {}", chargeBoxId));
     }
 
     public record SendAction(Action.ByCentralSystem action, OcppJsonMessage.MessageId messageId) {
