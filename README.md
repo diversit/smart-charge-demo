@@ -30,6 +30,8 @@ In `home-assistant` folder, run:
 docker compose up [-d]
 ```
 
+Open Home Assistant in the browser: http://localhost:8123 (user: demo, password: demo)
+
 !!! note
     HA will show errors in the logs while no charge point is connected and no status notification for connector 1 has been received.
 

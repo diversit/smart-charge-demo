@@ -1,0 +1,1906 @@
+{
+  "version": 1,
+  "minor_version": 1,
+  "key": "trace.saved_traces",
+  "data": {
+    "automation.1727598715683": [
+      {
+        "extended_dict": {
+          "last_step": "action/1",
+          "run_id": "57712b166a1734fb05e12f4d4b874954",
+          "state": "stopped",
+          "script_execution": "finished",
+          "timestamp": {
+            "start": "2024-10-07T13:01:54.601514+00:00",
+            "finish": "2024-10-07T13:01:54.646026+00:00"
+          },
+          "domain": "automation",
+          "item_id": "1727598715683",
+          "trigger": "input_number.new_charge_limit via template",
+          "trace": {
+            "trigger/0": [
+              {
+                "path": "trigger/0",
+                "timestamp": "2024-10-07T13:01:54.601614+00:00",
+                "changed_variables": {
+                  "this": {
+                    "entity_id": "automation.solar_power_decrease_charging",
+                    "state": "on",
+                    "attributes": {
+                      "id": "1727598715683",
+                      "last_triggered": "2024-09-30T09:00:46.318635+00:00",
+                      "mode": "single",
+                      "current": 0,
+                      "icon": "mdi:solar-power",
+                      "friendly_name": "solar power - decrease charging"
+                    },
+                    "last_changed": "2024-10-07T13:01:39.820079+00:00",
+                    "last_reported": "2024-10-07T13:01:39.820079+00:00",
+                    "last_updated": "2024-10-07T13:01:39.820079+00:00",
+                    "context": {
+                      "id": "01J9KH4DKCEWMFDVG5TKYEFD51",
+                      "parent_id": null,
+                      "user_id": null
+                    }
+                  },
+                  "trigger": {
+                    "platform": "template",
+                    "entity_id": "input_number.new_charge_limit",
+                    "from_state": {
+                      "entity_id": "input_number.new_charge_limit",
+                      "state": "0.0",
+                      "attributes": {
+                        "initial": null,
+                        "editable": true,
+                        "min": 0.0,
+                        "max": 16.0,
+                        "step": 0.1,
+                        "mode": "slider",
+                        "unit_of_measurement": "A",
+                        "icon": "mdi:lightning-bolt",
+                        "friendly_name": "new_charge_limit"
+                      },
+                      "last_changed": "2024-10-07T13:01:39.111272+00:00",
+                      "last_reported": "2024-10-07T13:01:39.111272+00:00",
+                      "last_updated": "2024-10-07T13:01:39.111272+00:00",
+                      "context": {
+                        "id": "01J9KH4CX73NV6V4BSWBJAM4AJ",
+                        "parent_id": null,
+                        "user_id": null
+                      }
+                    },
+                    "to_state": {
+                      "entity_id": "input_number.new_charge_limit",
+                      "state": "8.4",
+                      "attributes": {
+                        "initial": null,
+                        "editable": true,
+                        "min": 0.0,
+                        "max": 16.0,
+                        "step": 0.1,
+                        "mode": "slider",
+                        "unit_of_measurement": "A",
+                        "icon": "mdi:lightning-bolt",
+                        "friendly_name": "new_charge_limit"
+                      },
+                      "last_changed": "2024-10-07T13:01:54.599308+00:00",
+                      "last_reported": "2024-10-07T13:01:54.599308+00:00",
+                      "last_updated": "2024-10-07T13:01:54.599308+00:00",
+                      "context": {
+                        "id": "01J9KH4W16QVZDN3AAABNS15GG",
+                        "parent_id": null,
+                        "user_id": "f08c09205be24cae98b904ece4cc72e7"
+                      }
+                    },
+                    "id": "0",
+                    "idx": "0",
+                    "alias": null,
+                    "for": null,
+                    "description": "input_number.new_charge_limit via template"
+                  }
+                }
+              }
+            ],
+            "action/0": [
+              {
+                "path": "action/0",
+                "timestamp": "2024-10-07T13:01:54.601999+00:00",
+                "changed_variables": {
+                  "context": {
+                    "id": "01J9KH4W198NRTNPQEYYHTV92B",
+                    "parent_id": "01J9KH4W16QVZDN3AAABNS15GG",
+                    "user_id": null
+                  }
+                },
+                "result": {
+                  "choice": "then"
+                }
+              }
+            ],
+            "action/0/if": [
+              {
+                "path": "action/0/if",
+                "timestamp": "2024-10-07T13:01:54.602198+00:00",
+                "result": {
+                  "result": true
+                }
+              }
+            ],
+            "action/0/if/condition/0": [
+              {
+                "path": "action/0/if/condition/0",
+                "timestamp": "2024-10-07T13:01:54.602229+00:00",
+                "result": {
+                  "result": true
+                }
+              }
+            ],
+            "action/0/if/condition/0/entity_id/0": [
+              {
+                "path": "action/0/if/condition/0/entity_id/0",
+                "timestamp": "2024-10-07T13:01:54.602242+00:00",
+                "result": {
+                  "result": true,
+                  "state": 1392.0
+                }
+              }
+            ],
+            "action/0/then/0": [
+              {
+                "path": "action/0/then/0",
+                "timestamp": "2024-10-07T13:01:54.602384+00:00",
+                "result": {
+                  "params": {
+                    "domain": "input_number",
+                    "service": "set_value",
+                    "service_data": {
+                      "value": 0,
+                      "entity_id": [
+                        "input_number.new_charge_limit"
+                      ]
+                    },
+                    "target": {
+                      "entity_id": [
+                        "input_number.new_charge_limit"
+                      ]
+                    }
+                  },
+                  "running_script": false
+                }
+              }
+            ],
+            "action/1": [
+              {
+                "path": "action/1",
+                "timestamp": "2024-10-07T13:01:54.604112+00:00",
+                "child_id": {
+                  "domain": "script",
+                  "item_id": "put_new_charging_limit",
+                  "run_id": "29991ed202dcaf788785756052fd3882"
+                },
+                "result": {
+                  "params": {
+                    "domain": "script",
+                    "service": "put_new_charging_limit",
+                    "service_data": {},
+                    "target": {}
+                  },
+                  "running_script": true
+                }
+              }
+            ]
+          },
+          "config": {
+            "id": "1727598715683",
+            "alias": "Solar power - decrease charging",
+            "description": "Decrease charging when producing solar power decreases",
+            "trigger": [
+              {
+                "platform": "template",
+                "value_template": "{% set solarKWh = states('input_number.solar_production') | float %} {% set solarAmp = solarKWh / 235 %} {% set solarAmpRounded = solarAmp | round(1) %} {% set newChargeLimit = states('input_number.new_charge_limit') | float %} {{ solarAmpRounded < newChargeLimit }}"
+              }
+            ],
+            "condition": [],
+            "action": [
+              {
+                "if": [
+                  {
+                    "condition": "numeric_state",
+                    "entity_id": "input_number.solar_production",
+                    "below": 1500
+                  }
+                ],
+                "then": [
+                  {
+                    "action": "input_number.set_value",
+                    "alias": "Stop charging",
+                    "data": {
+                      "value": 0
+                    },
+                    "target": {
+                      "entity_id": "input_number.new_charge_limit"
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "action": "input_number.set_value",
+                    "alias": "Decrease charging with maximum of 16A",
+                    "metadata": {},
+                    "data": {
+                      "value": "{% set solarKWh = states('input_number.solar_production') | float %} {% set solarAmp = solarKWh / 235 %} {% set solarAmpRounded = solarAmp | round(1) %} {{ [solarAmpRounded, 16] | min }}"
+                    },
+                    "target": {
+                      "entity_id": "input_number.new_charge_limit"
+                    }
+                  }
+                ]
+              },
+              {
+                "action": "script.put_new_charging_limit",
+                "alias": "Put new charging limit",
+                "data": {}
+              }
+            ],
+            "mode": "single"
+          },
+          "blueprint_inputs": null,
+          "context": {
+            "id": "01J9KH4W198NRTNPQEYYHTV92B",
+            "parent_id": "01J9KH4W16QVZDN3AAABNS15GG",
+            "user_id": null
+          }
+        },
+        "short_dict": {
+          "last_step": "action/1",
+          "run_id": "57712b166a1734fb05e12f4d4b874954",
+          "state": "stopped",
+          "script_execution": "finished",
+          "timestamp": {
+            "start": "2024-10-07T13:01:54.601514+00:00",
+            "finish": "2024-10-07T13:01:54.646026+00:00"
+          },
+          "domain": "automation",
+          "item_id": "1727598715683",
+          "trigger": "input_number.new_charge_limit via template"
+        }
+      },
+      {
+        "extended_dict": {
+          "last_step": "action/1",
+          "run_id": "603dd68836eb4f3df35809d7b19b4675",
+          "state": "stopped",
+          "script_execution": "finished",
+          "timestamp": {
+            "start": "2024-10-07T13:02:14.144655+00:00",
+            "finish": "2024-10-07T13:02:14.161962+00:00"
+          },
+          "domain": "automation",
+          "item_id": "1727598715683",
+          "trigger": "input_number.new_charge_limit via template",
+          "trace": {
+            "trigger/0": [
+              {
+                "path": "trigger/0",
+                "timestamp": "2024-10-07T13:02:14.144769+00:00",
+                "changed_variables": {
+                  "this": {
+                    "entity_id": "automation.solar_power_decrease_charging",
+                    "state": "on",
+                    "attributes": {
+                      "id": "1727598715683",
+                      "last_triggered": "2024-10-07T13:01:54.601728+00:00",
+                      "mode": "single",
+                      "current": 0,
+                      "icon": "mdi:solar-power",
+                      "friendly_name": "solar power - decrease charging"
+                    },
+                    "last_changed": "2024-10-07T13:01:39.820079+00:00",
+                    "last_reported": "2024-10-07T13:01:54.645612+00:00",
+                    "last_updated": "2024-10-07T13:01:54.645612+00:00",
+                    "context": {
+                      "id": "01J9KH4W198NRTNPQEYYHTV92B",
+                      "parent_id": "01J9KH4W16QVZDN3AAABNS15GG",
+                      "user_id": null
+                    }
+                  },
+                  "trigger": {
+                    "platform": "template",
+                    "entity_id": "input_number.new_charge_limit",
+                    "from_state": {
+                      "entity_id": "input_number.new_charge_limit",
+                      "state": "0.0",
+                      "attributes": {
+                        "initial": null,
+                        "editable": true,
+                        "min": 0.0,
+                        "max": 16.0,
+                        "step": 0.1,
+                        "mode": "slider",
+                        "unit_of_measurement": "A",
+                        "icon": "mdi:lightning-bolt",
+                        "friendly_name": "new_charge_limit"
+                      },
+                      "last_changed": "2024-10-07T13:01:54.603899+00:00",
+                      "last_reported": "2024-10-07T13:01:54.603899+00:00",
+                      "last_updated": "2024-10-07T13:01:54.603899+00:00",
+                      "context": {
+                        "id": "01J9KH4W198NRTNPQEYYHTV92B",
+                        "parent_id": "01J9KH4W16QVZDN3AAABNS15GG",
+                        "user_id": null
+                      }
+                    },
+                    "to_state": {
+                      "entity_id": "input_number.new_charge_limit",
+                      "state": "7.3",
+                      "attributes": {
+                        "initial": null,
+                        "editable": true,
+                        "min": 0.0,
+                        "max": 16.0,
+                        "step": 0.1,
+                        "mode": "slider",
+                        "unit_of_measurement": "A",
+                        "icon": "mdi:lightning-bolt",
+                        "friendly_name": "new_charge_limit"
+                      },
+                      "last_changed": "2024-10-07T13:02:14.143622+00:00",
+                      "last_reported": "2024-10-07T13:02:14.143622+00:00",
+                      "last_updated": "2024-10-07T13:02:14.143622+00:00",
+                      "context": {
+                        "id": "01J9KH5F3Z1QPAYDNZ1SJMGKNR",
+                        "parent_id": null,
+                        "user_id": "f08c09205be24cae98b904ece4cc72e7"
+                      }
+                    },
+                    "id": "0",
+                    "idx": "0",
+                    "alias": null,
+                    "for": null,
+                    "description": "input_number.new_charge_limit via template"
+                  }
+                }
+              }
+            ],
+            "action/0": [
+              {
+                "path": "action/0",
+                "timestamp": "2024-10-07T13:02:14.145073+00:00",
+                "changed_variables": {
+                  "context": {
+                    "id": "01J9KH5F40YCWPXA2EWQ20Q2CK",
+                    "parent_id": "01J9KH5F3Z1QPAYDNZ1SJMGKNR",
+                    "user_id": null
+                  }
+                },
+                "result": {
+                  "choice": "then"
+                }
+              }
+            ],
+            "action/0/if": [
+              {
+                "path": "action/0/if",
+                "timestamp": "2024-10-07T13:02:14.145195+00:00",
+                "result": {
+                  "result": true
+                }
+              }
+            ],
+            "action/0/if/condition/0": [
+              {
+                "path": "action/0/if/condition/0",
+                "timestamp": "2024-10-07T13:02:14.145225+00:00",
+                "result": {
+                  "result": true
+                }
+              }
+            ],
+            "action/0/if/condition/0/entity_id/0": [
+              {
+                "path": "action/0/if/condition/0/entity_id/0",
+                "timestamp": "2024-10-07T13:02:14.145248+00:00",
+                "result": {
+                  "result": true,
+                  "state": 1392.0
+                }
+              }
+            ],
+            "action/0/then/0": [
+              {
+                "path": "action/0/then/0",
+                "timestamp": "2024-10-07T13:02:14.145432+00:00",
+                "result": {
+                  "params": {
+                    "domain": "input_number",
+                    "service": "set_value",
+                    "service_data": {
+                      "value": 0,
+                      "entity_id": [
+                        "input_number.new_charge_limit"
+                      ]
+                    },
+                    "target": {
+                      "entity_id": [
+                        "input_number.new_charge_limit"
+                      ]
+                    }
+                  },
+                  "running_script": false
+                }
+              }
+            ],
+            "action/1": [
+              {
+                "path": "action/1",
+                "timestamp": "2024-10-07T13:02:14.146022+00:00",
+                "child_id": {
+                  "domain": "script",
+                  "item_id": "put_new_charging_limit",
+                  "run_id": "74f8018606db88ab8ccb9e77d456c61f"
+                },
+                "result": {
+                  "params": {
+                    "domain": "script",
+                    "service": "put_new_charging_limit",
+                    "service_data": {},
+                    "target": {}
+                  },
+                  "running_script": true
+                }
+              }
+            ]
+          },
+          "config": {
+            "id": "1727598715683",
+            "alias": "Solar power - decrease charging",
+            "description": "Decrease charging when producing solar power decreases",
+            "trigger": [
+              {
+                "platform": "template",
+                "value_template": "{% set solarKWh = states('input_number.solar_production') | float %} {% set solarAmp = solarKWh / 235 %} {% set solarAmpRounded = solarAmp | round(1) %} {% set newChargeLimit = states('input_number.new_charge_limit') | float %} {{ solarAmpRounded < newChargeLimit }}"
+              }
+            ],
+            "condition": [],
+            "action": [
+              {
+                "if": [
+                  {
+                    "condition": "numeric_state",
+                    "entity_id": "input_number.solar_production",
+                    "below": 1500
+                  }
+                ],
+                "then": [
+                  {
+                    "action": "input_number.set_value",
+                    "alias": "Stop charging",
+                    "data": {
+                      "value": 0
+                    },
+                    "target": {
+                      "entity_id": "input_number.new_charge_limit"
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "action": "input_number.set_value",
+                    "alias": "Decrease charging with maximum of 16A",
+                    "metadata": {},
+                    "data": {
+                      "value": "{% set solarKWh = states('input_number.solar_production') | float %} {% set solarAmp = solarKWh / 235 %} {% set solarAmpRounded = solarAmp | round(1) %} {{ [solarAmpRounded, 16] | min }}"
+                    },
+                    "target": {
+                      "entity_id": "input_number.new_charge_limit"
+                    }
+                  }
+                ]
+              },
+              {
+                "action": "script.put_new_charging_limit",
+                "alias": "Put new charging limit",
+                "data": {}
+              }
+            ],
+            "mode": "single"
+          },
+          "blueprint_inputs": null,
+          "context": {
+            "id": "01J9KH5F40YCWPXA2EWQ20Q2CK",
+            "parent_id": "01J9KH5F3Z1QPAYDNZ1SJMGKNR",
+            "user_id": null
+          }
+        },
+        "short_dict": {
+          "last_step": "action/1",
+          "run_id": "603dd68836eb4f3df35809d7b19b4675",
+          "state": "stopped",
+          "script_execution": "finished",
+          "timestamp": {
+            "start": "2024-10-07T13:02:14.144655+00:00",
+            "finish": "2024-10-07T13:02:14.161962+00:00"
+          },
+          "domain": "automation",
+          "item_id": "1727598715683",
+          "trigger": "input_number.new_charge_limit via template"
+        }
+      },
+      {
+        "extended_dict": {
+          "last_step": "action/1",
+          "run_id": "b12dc202ad0c57fac99853fa3d1c1817",
+          "state": "stopped",
+          "script_execution": "finished",
+          "timestamp": {
+            "start": "2024-10-07T13:02:21.211033+00:00",
+            "finish": "2024-10-07T13:02:21.241357+00:00"
+          },
+          "domain": "automation",
+          "item_id": "1727598715683",
+          "trigger": "input_number.new_charge_limit via template",
+          "trace": {
+            "trigger/0": [
+              {
+                "path": "trigger/0",
+                "timestamp": "2024-10-07T13:02:21.211162+00:00",
+                "changed_variables": {
+                  "this": {
+                    "entity_id": "automation.solar_power_decrease_charging",
+                    "state": "on",
+                    "attributes": {
+                      "id": "1727598715683",
+                      "last_triggered": "2024-10-07T13:02:14.144864+00:00",
+                      "mode": "single",
+                      "current": 0,
+                      "icon": "mdi:solar-power",
+                      "friendly_name": "solar power - decrease charging"
+                    },
+                    "last_changed": "2024-10-07T13:01:39.820079+00:00",
+                    "last_reported": "2024-10-07T13:02:14.161602+00:00",
+                    "last_updated": "2024-10-07T13:02:14.161602+00:00",
+                    "context": {
+                      "id": "01J9KH5F40YCWPXA2EWQ20Q2CK",
+                      "parent_id": "01J9KH5F3Z1QPAYDNZ1SJMGKNR",
+                      "user_id": null
+                    }
+                  },
+                  "trigger": {
+                    "platform": "template",
+                    "entity_id": "input_number.new_charge_limit",
+                    "from_state": {
+                      "entity_id": "input_number.new_charge_limit",
+                      "state": "0.0",
+                      "attributes": {
+                        "initial": null,
+                        "editable": true,
+                        "min": 0.0,
+                        "max": 16.0,
+                        "step": 0.1,
+                        "mode": "slider",
+                        "unit_of_measurement": "A",
+                        "icon": "mdi:lightning-bolt",
+                        "friendly_name": "new_charge_limit"
+                      },
+                      "last_changed": "2024-10-07T13:02:14.145808+00:00",
+                      "last_reported": "2024-10-07T13:02:14.145808+00:00",
+                      "last_updated": "2024-10-07T13:02:14.145808+00:00",
+                      "context": {
+                        "id": "01J9KH5F40YCWPXA2EWQ20Q2CK",
+                        "parent_id": "01J9KH5F3Z1QPAYDNZ1SJMGKNR",
+                        "user_id": null
+                      }
+                    },
+                    "to_state": {
+                      "entity_id": "input_number.new_charge_limit",
+                      "state": "11.3",
+                      "attributes": {
+                        "initial": null,
+                        "editable": true,
+                        "min": 0.0,
+                        "max": 16.0,
+                        "step": 0.1,
+                        "mode": "slider",
+                        "unit_of_measurement": "A",
+                        "icon": "mdi:lightning-bolt",
+                        "friendly_name": "new_charge_limit"
+                      },
+                      "last_changed": "2024-10-07T13:02:21.210367+00:00",
+                      "last_reported": "2024-10-07T13:02:21.210367+00:00",
+                      "last_updated": "2024-10-07T13:02:21.210367+00:00",
+                      "context": {
+                        "id": "01J9KH5P0SPDKSMCT2EQCA6WQG",
+                        "parent_id": null,
+                        "user_id": "f08c09205be24cae98b904ece4cc72e7"
+                      }
+                    },
+                    "id": "0",
+                    "idx": "0",
+                    "alias": null,
+                    "for": null,
+                    "description": "input_number.new_charge_limit via template"
+                  }
+                }
+              }
+            ],
+            "action/0": [
+              {
+                "path": "action/0",
+                "timestamp": "2024-10-07T13:02:21.211514+00:00",
+                "changed_variables": {
+                  "context": {
+                    "id": "01J9KH5P0TA35WZJJVWCH991ZF",
+                    "parent_id": "01J9KH5P0SPDKSMCT2EQCA6WQG",
+                    "user_id": null
+                  }
+                },
+                "result": {
+                  "choice": "then"
+                }
+              }
+            ],
+            "action/0/if": [
+              {
+                "path": "action/0/if",
+                "timestamp": "2024-10-07T13:02:21.211642+00:00",
+                "result": {
+                  "result": true
+                }
+              }
+            ],
+            "action/0/if/condition/0": [
+              {
+                "path": "action/0/if/condition/0",
+                "timestamp": "2024-10-07T13:02:21.211668+00:00",
+                "result": {
+                  "result": true
+                }
+              }
+            ],
+            "action/0/if/condition/0/entity_id/0": [
+              {
+                "path": "action/0/if/condition/0/entity_id/0",
+                "timestamp": "2024-10-07T13:02:21.211687+00:00",
+                "result": {
+                  "result": true,
+                  "state": 1392.0
+                }
+              }
+            ],
+            "action/0/then/0": [
+              {
+                "path": "action/0/then/0",
+                "timestamp": "2024-10-07T13:02:21.211844+00:00",
+                "result": {
+                  "params": {
+                    "domain": "input_number",
+                    "service": "set_value",
+                    "service_data": {
+                      "value": 0,
+                      "entity_id": [
+                        "input_number.new_charge_limit"
+                      ]
+                    },
+                    "target": {
+                      "entity_id": [
+                        "input_number.new_charge_limit"
+                      ]
+                    }
+                  },
+                  "running_script": false
+                }
+              }
+            ],
+            "action/1": [
+              {
+                "path": "action/1",
+                "timestamp": "2024-10-07T13:02:21.212250+00:00",
+                "child_id": {
+                  "domain": "script",
+                  "item_id": "put_new_charging_limit",
+                  "run_id": "5892a6a3585d375933c352b5192ec337"
+                },
+                "result": {
+                  "params": {
+                    "domain": "script",
+                    "service": "put_new_charging_limit",
+                    "service_data": {},
+                    "target": {}
+                  },
+                  "running_script": true
+                }
+              }
+            ]
+          },
+          "config": {
+            "id": "1727598715683",
+            "alias": "Solar power - decrease charging",
+            "description": "Decrease charging when producing solar power decreases",
+            "trigger": [
+              {
+                "platform": "template",
+                "value_template": "{% set solarKWh = states('input_number.solar_production') | float %} {% set solarAmp = solarKWh / 235 %} {% set solarAmpRounded = solarAmp | round(1) %} {% set newChargeLimit = states('input_number.new_charge_limit') | float %} {{ solarAmpRounded < newChargeLimit }}"
+              }
+            ],
+            "condition": [],
+            "action": [
+              {
+                "if": [
+                  {
+                    "condition": "numeric_state",
+                    "entity_id": "input_number.solar_production",
+                    "below": 1500
+                  }
+                ],
+                "then": [
+                  {
+                    "action": "input_number.set_value",
+                    "alias": "Stop charging",
+                    "data": {
+                      "value": 0
+                    },
+                    "target": {
+                      "entity_id": "input_number.new_charge_limit"
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "action": "input_number.set_value",
+                    "alias": "Decrease charging with maximum of 16A",
+                    "metadata": {},
+                    "data": {
+                      "value": "{% set solarKWh = states('input_number.solar_production') | float %} {% set solarAmp = solarKWh / 235 %} {% set solarAmpRounded = solarAmp | round(1) %} {{ [solarAmpRounded, 16] | min }}"
+                    },
+                    "target": {
+                      "entity_id": "input_number.new_charge_limit"
+                    }
+                  }
+                ]
+              },
+              {
+                "action": "script.put_new_charging_limit",
+                "alias": "Put new charging limit",
+                "data": {}
+              }
+            ],
+            "mode": "single"
+          },
+          "blueprint_inputs": null,
+          "context": {
+            "id": "01J9KH5P0TA35WZJJVWCH991ZF",
+            "parent_id": "01J9KH5P0SPDKSMCT2EQCA6WQG",
+            "user_id": null
+          }
+        },
+        "short_dict": {
+          "last_step": "action/1",
+          "run_id": "b12dc202ad0c57fac99853fa3d1c1817",
+          "state": "stopped",
+          "script_execution": "finished",
+          "timestamp": {
+            "start": "2024-10-07T13:02:21.211033+00:00",
+            "finish": "2024-10-07T13:02:21.241357+00:00"
+          },
+          "domain": "automation",
+          "item_id": "1727598715683",
+          "trigger": "input_number.new_charge_limit via template"
+        }
+      },
+      {
+        "extended_dict": {
+          "last_step": "action/1",
+          "run_id": "8669612284fbf870b637c95f2dfcd053",
+          "state": "stopped",
+          "script_execution": "finished",
+          "timestamp": {
+            "start": "2024-10-07T13:02:22.030279+00:00",
+            "finish": "2024-10-07T13:02:22.038334+00:00"
+          },
+          "domain": "automation",
+          "item_id": "1727598715683",
+          "trigger": "input_number.new_charge_limit via template",
+          "trace": {
+            "trigger/0": [
+              {
+                "path": "trigger/0",
+                "timestamp": "2024-10-07T13:02:22.030384+00:00",
+                "changed_variables": {
+                  "this": {
+                    "entity_id": "automation.solar_power_decrease_charging",
+                    "state": "on",
+                    "attributes": {
+                      "id": "1727598715683",
+                      "last_triggered": "2024-10-07T13:02:21.211245+00:00",
+                      "mode": "single",
+                      "current": 0,
+                      "icon": "mdi:solar-power",
+                      "friendly_name": "solar power - decrease charging"
+                    },
+                    "last_changed": "2024-10-07T13:01:39.820079+00:00",
+                    "last_reported": "2024-10-07T13:02:21.240850+00:00",
+                    "last_updated": "2024-10-07T13:02:21.240850+00:00",
+                    "context": {
+                      "id": "01J9KH5P0TA35WZJJVWCH991ZF",
+                      "parent_id": "01J9KH5P0SPDKSMCT2EQCA6WQG",
+                      "user_id": null
+                    }
+                  },
+                  "trigger": {
+                    "platform": "template",
+                    "entity_id": "input_number.new_charge_limit",
+                    "from_state": {
+                      "entity_id": "input_number.new_charge_limit",
+                      "state": "0.0",
+                      "attributes": {
+                        "initial": null,
+                        "editable": true,
+                        "min": 0.0,
+                        "max": 16.0,
+                        "step": 0.1,
+                        "mode": "slider",
+                        "unit_of_measurement": "A",
+                        "icon": "mdi:lightning-bolt",
+                        "friendly_name": "new_charge_limit"
+                      },
+                      "last_changed": "2024-10-07T13:02:21.212131+00:00",
+                      "last_reported": "2024-10-07T13:02:21.212131+00:00",
+                      "last_updated": "2024-10-07T13:02:21.212131+00:00",
+                      "context": {
+                        "id": "01J9KH5P0TA35WZJJVWCH991ZF",
+                        "parent_id": "01J9KH5P0SPDKSMCT2EQCA6WQG",
+                        "user_id": null
+                      }
+                    },
+                    "to_state": {
+                      "entity_id": "input_number.new_charge_limit",
+                      "state": "6.6",
+                      "attributes": {
+                        "initial": null,
+                        "editable": true,
+                        "min": 0.0,
+                        "max": 16.0,
+                        "step": 0.1,
+                        "mode": "slider",
+                        "unit_of_measurement": "A",
+                        "icon": "mdi:lightning-bolt",
+                        "friendly_name": "new_charge_limit"
+                      },
+                      "last_changed": "2024-10-07T13:02:22.029321+00:00",
+                      "last_reported": "2024-10-07T13:02:22.029321+00:00",
+                      "last_updated": "2024-10-07T13:02:22.029321+00:00",
+                      "context": {
+                        "id": "01J9KH5PTCJXVCMPSN4W46TMME",
+                        "parent_id": null,
+                        "user_id": "f08c09205be24cae98b904ece4cc72e7"
+                      }
+                    },
+                    "id": "0",
+                    "idx": "0",
+                    "alias": null,
+                    "for": null,
+                    "description": "input_number.new_charge_limit via template"
+                  }
+                }
+              }
+            ],
+            "action/0": [
+              {
+                "path": "action/0",
+                "timestamp": "2024-10-07T13:02:22.030727+00:00",
+                "changed_variables": {
+                  "context": {
+                    "id": "01J9KH5PTE4PHR95BA9NDG9JVX",
+                    "parent_id": "01J9KH5PTCJXVCMPSN4W46TMME",
+                    "user_id": null
+                  }
+                },
+                "result": {
+                  "choice": "then"
+                }
+              }
+            ],
+            "action/0/if": [
+              {
+                "path": "action/0/if",
+                "timestamp": "2024-10-07T13:02:22.030823+00:00",
+                "result": {
+                  "result": true
+                }
+              }
+            ],
+            "action/0/if/condition/0": [
+              {
+                "path": "action/0/if/condition/0",
+                "timestamp": "2024-10-07T13:02:22.030854+00:00",
+                "result": {
+                  "result": true
+                }
+              }
+            ],
+            "action/0/if/condition/0/entity_id/0": [
+              {
+                "path": "action/0/if/condition/0/entity_id/0",
+                "timestamp": "2024-10-07T13:02:22.030922+00:00",
+                "result": {
+                  "result": true,
+                  "state": 1392.0
+                }
+              }
+            ],
+            "action/0/then/0": [
+              {
+                "path": "action/0/then/0",
+                "timestamp": "2024-10-07T13:02:22.031257+00:00",
+                "result": {
+                  "params": {
+                    "domain": "input_number",
+                    "service": "set_value",
+                    "service_data": {
+                      "value": 0,
+                      "entity_id": [
+                        "input_number.new_charge_limit"
+                      ]
+                    },
+                    "target": {
+                      "entity_id": [
+                        "input_number.new_charge_limit"
+                      ]
+                    }
+                  },
+                  "running_script": false
+                }
+              }
+            ],
+            "action/1": [
+              {
+                "path": "action/1",
+                "timestamp": "2024-10-07T13:02:22.031896+00:00",
+                "child_id": {
+                  "domain": "script",
+                  "item_id": "put_new_charging_limit",
+                  "run_id": "0228b19d110ba98dbd9c4d13fb7e440e"
+                },
+                "result": {
+                  "params": {
+                    "domain": "script",
+                    "service": "put_new_charging_limit",
+                    "service_data": {},
+                    "target": {}
+                  },
+                  "running_script": true
+                }
+              }
+            ]
+          },
+          "config": {
+            "id": "1727598715683",
+            "alias": "Solar power - decrease charging",
+            "description": "Decrease charging when producing solar power decreases",
+            "trigger": [
+              {
+                "platform": "template",
+                "value_template": "{% set solarKWh = states('input_number.solar_production') | float %} {% set solarAmp = solarKWh / 235 %} {% set solarAmpRounded = solarAmp | round(1) %} {% set newChargeLimit = states('input_number.new_charge_limit') | float %} {{ solarAmpRounded < newChargeLimit }}"
+              }
+            ],
+            "condition": [],
+            "action": [
+              {
+                "if": [
+                  {
+                    "condition": "numeric_state",
+                    "entity_id": "input_number.solar_production",
+                    "below": 1500
+                  }
+                ],
+                "then": [
+                  {
+                    "action": "input_number.set_value",
+                    "alias": "Stop charging",
+                    "data": {
+                      "value": 0
+                    },
+                    "target": {
+                      "entity_id": "input_number.new_charge_limit"
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "action": "input_number.set_value",
+                    "alias": "Decrease charging with maximum of 16A",
+                    "metadata": {},
+                    "data": {
+                      "value": "{% set solarKWh = states('input_number.solar_production') | float %} {% set solarAmp = solarKWh / 235 %} {% set solarAmpRounded = solarAmp | round(1) %} {{ [solarAmpRounded, 16] | min }}"
+                    },
+                    "target": {
+                      "entity_id": "input_number.new_charge_limit"
+                    }
+                  }
+                ]
+              },
+              {
+                "action": "script.put_new_charging_limit",
+                "alias": "Put new charging limit",
+                "data": {}
+              }
+            ],
+            "mode": "single"
+          },
+          "blueprint_inputs": null,
+          "context": {
+            "id": "01J9KH5PTE4PHR95BA9NDG9JVX",
+            "parent_id": "01J9KH5PTCJXVCMPSN4W46TMME",
+            "user_id": null
+          }
+        },
+        "short_dict": {
+          "last_step": "action/1",
+          "run_id": "8669612284fbf870b637c95f2dfcd053",
+          "state": "stopped",
+          "script_execution": "finished",
+          "timestamp": {
+            "start": "2024-10-07T13:02:22.030279+00:00",
+            "finish": "2024-10-07T13:02:22.038334+00:00"
+          },
+          "domain": "automation",
+          "item_id": "1727598715683",
+          "trigger": "input_number.new_charge_limit via template"
+        }
+      },
+      {
+        "extended_dict": {
+          "last_step": "action/1",
+          "run_id": "721265e2a39fef5d92e345be8ddb7c23",
+          "state": "stopped",
+          "script_execution": "finished",
+          "timestamp": {
+            "start": "2024-10-07T13:06:50.637311+00:00",
+            "finish": "2024-10-07T13:06:50.664457+00:00"
+          },
+          "domain": "automation",
+          "item_id": "1727598715683",
+          "trigger": "input_number.new_charge_limit via template",
+          "trace": {
+            "trigger/0": [
+              {
+                "path": "trigger/0",
+                "timestamp": "2024-10-07T13:06:50.637405+00:00",
+                "changed_variables": {
+                  "this": {
+                    "entity_id": "automation.solar_power_decrease_charging",
+                    "state": "on",
+                    "attributes": {
+                      "id": "1727598715683",
+                      "last_triggered": "2024-10-07T13:02:22.030465+00:00",
+                      "mode": "single",
+                      "current": 0,
+                      "icon": "mdi:solar-power",
+                      "friendly_name": "solar power - decrease charging"
+                    },
+                    "last_changed": "2024-10-07T13:01:39.820079+00:00",
+                    "last_reported": "2024-10-07T13:02:22.037839+00:00",
+                    "last_updated": "2024-10-07T13:02:22.037839+00:00",
+                    "context": {
+                      "id": "01J9KH5PTE4PHR95BA9NDG9JVX",
+                      "parent_id": "01J9KH5PTCJXVCMPSN4W46TMME",
+                      "user_id": null
+                    }
+                  },
+                  "trigger": {
+                    "platform": "template",
+                    "entity_id": "input_number.new_charge_limit",
+                    "from_state": {
+                      "entity_id": "input_number.new_charge_limit",
+                      "state": "0.0",
+                      "attributes": {
+                        "initial": null,
+                        "editable": true,
+                        "min": 0.0,
+                        "max": 16.0,
+                        "step": 0.1,
+                        "mode": "slider",
+                        "unit_of_measurement": "A",
+                        "icon": "mdi:lightning-bolt",
+                        "friendly_name": "new_charge_limit"
+                      },
+                      "last_changed": "2024-10-07T13:02:22.031649+00:00",
+                      "last_reported": "2024-10-07T13:02:22.031649+00:00",
+                      "last_updated": "2024-10-07T13:02:22.031649+00:00",
+                      "context": {
+                        "id": "01J9KH5PTE4PHR95BA9NDG9JVX",
+                        "parent_id": "01J9KH5PTCJXVCMPSN4W46TMME",
+                        "user_id": null
+                      }
+                    },
+                    "to_state": {
+                      "entity_id": "input_number.new_charge_limit",
+                      "state": "10.3",
+                      "attributes": {
+                        "initial": null,
+                        "editable": true,
+                        "min": 0.0,
+                        "max": 16.0,
+                        "step": 0.1,
+                        "mode": "slider",
+                        "unit_of_measurement": "A",
+                        "icon": "mdi:lightning-bolt",
+                        "friendly_name": "new_charge_limit"
+                      },
+                      "last_changed": "2024-10-07T13:06:50.636378+00:00",
+                      "last_reported": "2024-10-07T13:06:50.636378+00:00",
+                      "last_updated": "2024-10-07T13:06:50.636378+00:00",
+                      "context": {
+                        "id": "01J9KHDX4ARP3Z8ZB2E9GDVH2B",
+                        "parent_id": null,
+                        "user_id": "f08c09205be24cae98b904ece4cc72e7"
+                      }
+                    },
+                    "id": "0",
+                    "idx": "0",
+                    "alias": null,
+                    "for": null,
+                    "description": "input_number.new_charge_limit via template"
+                  }
+                }
+              }
+            ],
+            "action/0": [
+              {
+                "path": "action/0",
+                "timestamp": "2024-10-07T13:06:50.637685+00:00",
+                "changed_variables": {
+                  "context": {
+                    "id": "01J9KHDX4D7MJTVCT0SKVS21XN",
+                    "parent_id": "01J9KHDX4ARP3Z8ZB2E9GDVH2B",
+                    "user_id": null
+                  }
+                },
+                "result": {
+                  "choice": "then"
+                }
+              }
+            ],
+            "action/0/if": [
+              {
+                "path": "action/0/if",
+                "timestamp": "2024-10-07T13:06:50.637762+00:00",
+                "result": {
+                  "result": true
+                }
+              }
+            ],
+            "action/0/if/condition/0": [
+              {
+                "path": "action/0/if/condition/0",
+                "timestamp": "2024-10-07T13:06:50.637784+00:00",
+                "result": {
+                  "result": true
+                }
+              }
+            ],
+            "action/0/if/condition/0/entity_id/0": [
+              {
+                "path": "action/0/if/condition/0/entity_id/0",
+                "timestamp": "2024-10-07T13:06:50.637801+00:00",
+                "result": {
+                  "result": true,
+                  "state": 1392.0
+                }
+              }
+            ],
+            "action/0/then/0": [
+              {
+                "path": "action/0/then/0",
+                "timestamp": "2024-10-07T13:06:50.637935+00:00",
+                "result": {
+                  "params": {
+                    "domain": "input_number",
+                    "service": "set_value",
+                    "service_data": {
+                      "value": 0,
+                      "entity_id": [
+                        "input_number.new_charge_limit"
+                      ]
+                    },
+                    "target": {
+                      "entity_id": [
+                        "input_number.new_charge_limit"
+                      ]
+                    }
+                  },
+                  "running_script": false
+                }
+              }
+            ],
+            "action/1": [
+              {
+                "path": "action/1",
+                "timestamp": "2024-10-07T13:06:50.638452+00:00",
+                "child_id": {
+                  "domain": "script",
+                  "item_id": "put_new_charging_limit",
+                  "run_id": "08e38f6077ee425980962e5b9716dfe1"
+                },
+                "result": {
+                  "params": {
+                    "domain": "script",
+                    "service": "put_new_charging_limit",
+                    "service_data": {},
+                    "target": {}
+                  },
+                  "running_script": true
+                }
+              }
+            ]
+          },
+          "config": {
+            "id": "1727598715683",
+            "alias": "Solar power - decrease charging",
+            "description": "Decrease charging when producing solar power decreases",
+            "trigger": [
+              {
+                "platform": "template",
+                "value_template": "{% set solarKWh = states('input_number.solar_production') | float %} {% set solarAmp = solarKWh / 235 %} {% set solarAmpRounded = solarAmp | round(1) %} {% set newChargeLimit = states('input_number.new_charge_limit') | float %} {{ solarAmpRounded < newChargeLimit }}"
+              }
+            ],
+            "condition": [],
+            "action": [
+              {
+                "if": [
+                  {
+                    "condition": "numeric_state",
+                    "entity_id": "input_number.solar_production",
+                    "below": 1500
+                  }
+                ],
+                "then": [
+                  {
+                    "action": "input_number.set_value",
+                    "alias": "Stop charging",
+                    "data": {
+                      "value": 0
+                    },
+                    "target": {
+                      "entity_id": "input_number.new_charge_limit"
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "action": "input_number.set_value",
+                    "alias": "Decrease charging with maximum of 16A",
+                    "metadata": {},
+                    "data": {
+                      "value": "{% set solarKWh = states('input_number.solar_production') | float %} {% set solarAmp = solarKWh / 235 %} {% set solarAmpRounded = solarAmp | round(1) %} {{ [solarAmpRounded, 16] | min }}"
+                    },
+                    "target": {
+                      "entity_id": "input_number.new_charge_limit"
+                    }
+                  }
+                ]
+              },
+              {
+                "action": "script.put_new_charging_limit",
+                "alias": "Put new charging limit",
+                "data": {}
+              }
+            ],
+            "mode": "single"
+          },
+          "blueprint_inputs": null,
+          "context": {
+            "id": "01J9KHDX4D7MJTVCT0SKVS21XN",
+            "parent_id": "01J9KHDX4ARP3Z8ZB2E9GDVH2B",
+            "user_id": null
+          }
+        },
+        "short_dict": {
+          "last_step": "action/1",
+          "run_id": "721265e2a39fef5d92e345be8ddb7c23",
+          "state": "stopped",
+          "script_execution": "finished",
+          "timestamp": {
+            "start": "2024-10-07T13:06:50.637311+00:00",
+            "finish": "2024-10-07T13:06:50.664457+00:00"
+          },
+          "domain": "automation",
+          "item_id": "1727598715683",
+          "trigger": "input_number.new_charge_limit via template"
+        }
+      }
+    ],
+    "script.put_new_charging_limit": [
+      {
+        "extended_dict": {
+          "last_step": "sequence/1",
+          "run_id": "7a4eb42e2ceebe7cd4cee54ba1e90bb5",
+          "state": "stopped",
+          "script_execution": "finished",
+          "timestamp": {
+            "start": "2024-10-07T13:06:42.921138+00:00",
+            "finish": "2024-10-07T13:06:42.938622+00:00"
+          },
+          "domain": "script",
+          "item_id": "put_new_charging_limit",
+          "trace": {
+            "sequence/0": [
+              {
+                "path": "sequence/0",
+                "timestamp": "2024-10-07T13:06:42.921731+00:00",
+                "changed_variables": {
+                  "this": {
+                    "entity_id": "script.put_new_charging_limit",
+                    "state": "off",
+                    "attributes": {
+                      "last_triggered": "2024-10-07T13:02:23.122422+00:00",
+                      "mode": "single",
+                      "current": 0,
+                      "friendly_name": "Put new charging limit"
+                    },
+                    "last_changed": "2024-10-07T13:02:23.132534+00:00",
+                    "last_reported": "2024-10-07T13:02:23.132534+00:00",
+                    "last_updated": "2024-10-07T13:02:23.132534+00:00",
+                    "context": {
+                      "id": "01J9KH5QWJD1941MHC6M2GVK95",
+                      "parent_id": null,
+                      "user_id": "f08c09205be24cae98b904ece4cc72e7"
+                    }
+                  },
+                  "context": {
+                    "id": "01J9KHDNK80NNKJYE77Q6N9QW7",
+                    "parent_id": null,
+                    "user_id": "f08c09205be24cae98b904ece4cc72e7"
+                  }
+                },
+                "result": {
+                  "params": {
+                    "domain": "input_number",
+                    "service": "set_value",
+                    "service_data": {
+                      "value": 0.0,
+                      "entity_id": [
+                        "input_number.charge_limit"
+                      ]
+                    },
+                    "target": {
+                      "entity_id": [
+                        "input_number.charge_limit"
+                      ]
+                    }
+                  },
+                  "running_script": false
+                }
+              }
+            ],
+            "sequence/1": [
+              {
+                "path": "sequence/1",
+                "timestamp": "2024-10-07T13:06:42.922683+00:00",
+                "result": {
+                  "params": {
+                    "domain": "rest_command",
+                    "service": "set_charging_limit_con1",
+                    "service_data": {},
+                    "target": {}
+                  },
+                  "running_script": false
+                }
+              }
+            ]
+          },
+          "config": {
+            "alias": "Put new charging limit",
+            "sequence": [
+              {
+                "action": "input_number.set_value",
+                "target": {
+                  "entity_id": "input_number.charge_limit"
+                },
+                "data": {
+                  "value": "{{ states('input_number.new_charge_limit') }}"
+                }
+              },
+              {
+                "action": "rest_command.set_charging_limit_con1",
+                "metadata": {},
+                "data": {}
+              }
+            ],
+            "description": "Copy the value into the charging limit number and call the Rest service to set the charging limit to this new value."
+          },
+          "blueprint_inputs": null,
+          "context": {
+            "id": "01J9KHDNK80NNKJYE77Q6N9QW7",
+            "parent_id": null,
+            "user_id": "f08c09205be24cae98b904ece4cc72e7"
+          }
+        },
+        "short_dict": {
+          "last_step": "sequence/1",
+          "run_id": "7a4eb42e2ceebe7cd4cee54ba1e90bb5",
+          "state": "stopped",
+          "script_execution": "finished",
+          "timestamp": {
+            "start": "2024-10-07T13:06:42.921138+00:00",
+            "finish": "2024-10-07T13:06:42.938622+00:00"
+          },
+          "domain": "script",
+          "item_id": "put_new_charging_limit"
+        }
+      },
+      {
+        "extended_dict": {
+          "last_step": "sequence/1",
+          "run_id": "08e38f6077ee425980962e5b9716dfe1",
+          "state": "stopped",
+          "script_execution": "finished",
+          "timestamp": {
+            "start": "2024-10-07T13:06:50.638551+00:00",
+            "finish": "2024-10-07T13:06:50.664039+00:00"
+          },
+          "domain": "script",
+          "item_id": "put_new_charging_limit",
+          "trace": {
+            "sequence/0": [
+              {
+                "path": "sequence/0",
+                "timestamp": "2024-10-07T13:06:50.638716+00:00",
+                "changed_variables": {
+                  "this": {
+                    "entity_id": "script.put_new_charging_limit",
+                    "state": "off",
+                    "attributes": {
+                      "last_triggered": "2024-10-07T13:06:42.921367+00:00",
+                      "mode": "single",
+                      "current": 0,
+                      "friendly_name": "Put new charging limit"
+                    },
+                    "last_changed": "2024-10-07T13:06:42.937921+00:00",
+                    "last_reported": "2024-10-07T13:06:42.937921+00:00",
+                    "last_updated": "2024-10-07T13:06:42.937921+00:00",
+                    "context": {
+                      "id": "01J9KHDNK80NNKJYE77Q6N9QW7",
+                      "parent_id": null,
+                      "user_id": "f08c09205be24cae98b904ece4cc72e7"
+                    }
+                  },
+                  "context": {
+                    "id": "01J9KHDX4D7MJTVCT0SKVS21XN",
+                    "parent_id": "01J9KHDX4ARP3Z8ZB2E9GDVH2B",
+                    "user_id": null
+                  }
+                },
+                "result": {
+                  "params": {
+                    "domain": "input_number",
+                    "service": "set_value",
+                    "service_data": {
+                      "value": 0.0,
+                      "entity_id": [
+                        "input_number.charge_limit"
+                      ]
+                    },
+                    "target": {
+                      "entity_id": [
+                        "input_number.charge_limit"
+                      ]
+                    }
+                  },
+                  "running_script": false
+                }
+              }
+            ],
+            "sequence/1": [
+              {
+                "path": "sequence/1",
+                "timestamp": "2024-10-07T13:06:50.639071+00:00",
+                "result": {
+                  "params": {
+                    "domain": "rest_command",
+                    "service": "set_charging_limit_con1",
+                    "service_data": {},
+                    "target": {}
+                  },
+                  "running_script": false
+                }
+              }
+            ]
+          },
+          "config": {
+            "alias": "Put new charging limit",
+            "sequence": [
+              {
+                "action": "input_number.set_value",
+                "target": {
+                  "entity_id": "input_number.charge_limit"
+                },
+                "data": {
+                  "value": "{{ states('input_number.new_charge_limit') }}"
+                }
+              },
+              {
+                "action": "rest_command.set_charging_limit_con1",
+                "metadata": {},
+                "data": {}
+              }
+            ],
+            "description": "Copy the value into the charging limit number and call the Rest service to set the charging limit to this new value."
+          },
+          "blueprint_inputs": null,
+          "context": {
+            "id": "01J9KHDX4D7MJTVCT0SKVS21XN",
+            "parent_id": "01J9KHDX4ARP3Z8ZB2E9GDVH2B",
+            "user_id": null
+          }
+        },
+        "short_dict": {
+          "last_step": "sequence/1",
+          "run_id": "08e38f6077ee425980962e5b9716dfe1",
+          "state": "stopped",
+          "script_execution": "finished",
+          "timestamp": {
+            "start": "2024-10-07T13:06:50.638551+00:00",
+            "finish": "2024-10-07T13:06:50.664039+00:00"
+          },
+          "domain": "script",
+          "item_id": "put_new_charging_limit"
+        }
+      },
+      {
+        "extended_dict": {
+          "last_step": "sequence/1",
+          "run_id": "3b14619e4c62a3b4136ab6b73b86eb5a",
+          "state": "stopped",
+          "script_execution": "finished",
+          "timestamp": {
+            "start": "2024-10-07T13:06:51.654031+00:00",
+            "finish": "2024-10-07T13:06:51.662693+00:00"
+          },
+          "domain": "script",
+          "item_id": "put_new_charging_limit",
+          "trace": {
+            "sequence/0": [
+              {
+                "path": "sequence/0",
+                "timestamp": "2024-10-07T13:06:51.654722+00:00",
+                "changed_variables": {
+                  "this": {
+                    "entity_id": "script.put_new_charging_limit",
+                    "state": "off",
+                    "attributes": {
+                      "last_triggered": "2024-10-07T13:06:50.638621+00:00",
+                      "mode": "single",
+                      "current": 0,
+                      "friendly_name": "Put new charging limit"
+                    },
+                    "last_changed": "2024-10-07T13:06:50.663300+00:00",
+                    "last_reported": "2024-10-07T13:06:50.663300+00:00",
+                    "last_updated": "2024-10-07T13:06:50.663300+00:00",
+                    "context": {
+                      "id": "01J9KHDX4D7MJTVCT0SKVS21XN",
+                      "parent_id": "01J9KHDX4ARP3Z8ZB2E9GDVH2B",
+                      "user_id": null
+                    }
+                  },
+                  "context": {
+                    "id": "01J9KHDY45YTJCACYWFZ9NA0QN",
+                    "parent_id": null,
+                    "user_id": "f08c09205be24cae98b904ece4cc72e7"
+                  }
+                },
+                "result": {
+                  "params": {
+                    "domain": "input_number",
+                    "service": "set_value",
+                    "service_data": {
+                      "value": 0.0,
+                      "entity_id": [
+                        "input_number.charge_limit"
+                      ]
+                    },
+                    "target": {
+                      "entity_id": [
+                        "input_number.charge_limit"
+                      ]
+                    }
+                  },
+                  "running_script": false
+                }
+              }
+            ],
+            "sequence/1": [
+              {
+                "path": "sequence/1",
+                "timestamp": "2024-10-07T13:06:51.655583+00:00",
+                "result": {
+                  "params": {
+                    "domain": "rest_command",
+                    "service": "set_charging_limit_con1",
+                    "service_data": {},
+                    "target": {}
+                  },
+                  "running_script": false
+                }
+              }
+            ]
+          },
+          "config": {
+            "alias": "Put new charging limit",
+            "sequence": [
+              {
+                "action": "input_number.set_value",
+                "target": {
+                  "entity_id": "input_number.charge_limit"
+                },
+                "data": {
+                  "value": "{{ states('input_number.new_charge_limit') }}"
+                }
+              },
+              {
+                "action": "rest_command.set_charging_limit_con1",
+                "metadata": {},
+                "data": {}
+              }
+            ],
+            "description": "Copy the value into the charging limit number and call the Rest service to set the charging limit to this new value."
+          },
+          "blueprint_inputs": null,
+          "context": {
+            "id": "01J9KHDY45YTJCACYWFZ9NA0QN",
+            "parent_id": null,
+            "user_id": "f08c09205be24cae98b904ece4cc72e7"
+          }
+        },
+        "short_dict": {
+          "last_step": "sequence/1",
+          "run_id": "3b14619e4c62a3b4136ab6b73b86eb5a",
+          "state": "stopped",
+          "script_execution": "finished",
+          "timestamp": {
+            "start": "2024-10-07T13:06:51.654031+00:00",
+            "finish": "2024-10-07T13:06:51.662693+00:00"
+          },
+          "domain": "script",
+          "item_id": "put_new_charging_limit"
+        }
+      },
+      {
+        "extended_dict": {
+          "last_step": "sequence/1",
+          "run_id": "39b0f10b34158c27452daba622611488",
+          "state": "stopped",
+          "script_execution": "finished",
+          "timestamp": {
+            "start": "2024-10-07T13:07:01.950967+00:00",
+            "finish": "2024-10-07T13:07:02.000973+00:00"
+          },
+          "domain": "script",
+          "item_id": "put_new_charging_limit",
+          "trace": {
+            "sequence/0": [
+              {
+                "path": "sequence/0",
+                "timestamp": "2024-10-07T13:07:01.951753+00:00",
+                "changed_variables": {
+                  "this": {
+                    "entity_id": "script.put_new_charging_limit",
+                    "state": "off",
+                    "attributes": {
+                      "last_triggered": "2024-10-07T13:06:51.654352+00:00",
+                      "mode": "single",
+                      "current": 0,
+                      "friendly_name": "Put new charging limit"
+                    },
+                    "last_changed": "2024-10-07T13:06:51.661912+00:00",
+                    "last_reported": "2024-10-07T13:06:51.661912+00:00",
+                    "last_updated": "2024-10-07T13:06:51.661912+00:00",
+                    "context": {
+                      "id": "01J9KHDY45YTJCACYWFZ9NA0QN",
+                      "parent_id": null,
+                      "user_id": "f08c09205be24cae98b904ece4cc72e7"
+                    }
+                  },
+                  "context": {
+                    "id": "01J9KHE85YQTVXAEG92SE3XD9W",
+                    "parent_id": null,
+                    "user_id": "f08c09205be24cae98b904ece4cc72e7"
+                  }
+                },
+                "result": {
+                  "params": {
+                    "domain": "input_number",
+                    "service": "set_value",
+                    "service_data": {
+                      "value": 5.4,
+                      "entity_id": [
+                        "input_number.charge_limit"
+                      ]
+                    },
+                    "target": {
+                      "entity_id": [
+                        "input_number.charge_limit"
+                      ]
+                    }
+                  },
+                  "running_script": false
+                }
+              }
+            ],
+            "sequence/1": [
+              {
+                "path": "sequence/1",
+                "timestamp": "2024-10-07T13:07:01.952923+00:00",
+                "result": {
+                  "params": {
+                    "domain": "rest_command",
+                    "service": "set_charging_limit_con1",
+                    "service_data": {},
+                    "target": {}
+                  },
+                  "running_script": false
+                }
+              }
+            ]
+          },
+          "config": {
+            "alias": "Put new charging limit",
+            "sequence": [
+              {
+                "action": "input_number.set_value",
+                "target": {
+                  "entity_id": "input_number.charge_limit"
+                },
+                "data": {
+                  "value": "{{ states('input_number.new_charge_limit') }}"
+                }
+              },
+              {
+                "action": "rest_command.set_charging_limit_con1",
+                "metadata": {},
+                "data": {}
+              }
+            ],
+            "description": "Copy the value into the charging limit number and call the Rest service to set the charging limit to this new value."
+          },
+          "blueprint_inputs": null,
+          "context": {
+            "id": "01J9KHE85YQTVXAEG92SE3XD9W",
+            "parent_id": null,
+            "user_id": "f08c09205be24cae98b904ece4cc72e7"
+          }
+        },
+        "short_dict": {
+          "last_step": "sequence/1",
+          "run_id": "39b0f10b34158c27452daba622611488",
+          "state": "stopped",
+          "script_execution": "finished",
+          "timestamp": {
+            "start": "2024-10-07T13:07:01.950967+00:00",
+            "finish": "2024-10-07T13:07:02.000973+00:00"
+          },
+          "domain": "script",
+          "item_id": "put_new_charging_limit"
+        }
+      },
+      {
+        "extended_dict": {
+          "last_step": "sequence/1",
+          "run_id": "3ef5fab163c889c538f795f01b70a04c",
+          "state": "stopped",
+          "script_execution": "finished",
+          "timestamp": {
+            "start": "2024-10-07T13:07:15.091936+00:00",
+            "finish": "2024-10-07T13:07:15.109642+00:00"
+          },
+          "domain": "script",
+          "item_id": "put_new_charging_limit",
+          "trace": {
+            "sequence/0": [
+              {
+                "path": "sequence/0",
+                "timestamp": "2024-10-07T13:07:15.092476+00:00",
+                "changed_variables": {
+                  "this": {
+                    "entity_id": "script.put_new_charging_limit",
+                    "state": "off",
+                    "attributes": {
+                      "last_triggered": "2024-10-07T13:07:01.951361+00:00",
+                      "mode": "single",
+                      "current": 0,
+                      "friendly_name": "Put new charging limit"
+                    },
+                    "last_changed": "2024-10-07T13:07:01.999964+00:00",
+                    "last_reported": "2024-10-07T13:07:01.999964+00:00",
+                    "last_updated": "2024-10-07T13:07:01.999964+00:00",
+                    "context": {
+                      "id": "01J9KHE85YQTVXAEG92SE3XD9W",
+                      "parent_id": null,
+                      "user_id": "f08c09205be24cae98b904ece4cc72e7"
+                    }
+                  },
+                  "context": {
+                    "id": "01J9KHEN0KPZCJ6R8ATHQBMXMW",
+                    "parent_id": null,
+                    "user_id": "f08c09205be24cae98b904ece4cc72e7"
+                  }
+                },
+                "result": {
+                  "params": {
+                    "domain": "input_number",
+                    "service": "set_value",
+                    "service_data": {
+                      "value": 0.0,
+                      "entity_id": [
+                        "input_number.charge_limit"
+                      ]
+                    },
+                    "target": {
+                      "entity_id": [
+                        "input_number.charge_limit"
+                      ]
+                    }
+                  },
+                  "running_script": false
+                }
+              }
+            ],
+            "sequence/1": [
+              {
+                "path": "sequence/1",
+                "timestamp": "2024-10-07T13:07:15.094470+00:00",
+                "result": {
+                  "params": {
+                    "domain": "rest_command",
+                    "service": "set_charging_limit_con1",
+                    "service_data": {},
+                    "target": {}
+                  },
+                  "running_script": false
+                }
+              }
+            ]
+          },
+          "config": {
+            "alias": "Put new charging limit",
+            "sequence": [
+              {
+                "action": "input_number.set_value",
+                "target": {
+                  "entity_id": "input_number.charge_limit"
+                },
+                "data": {
+                  "value": "{{ states('input_number.new_charge_limit') }}"
+                }
+              },
+              {
+                "action": "rest_command.set_charging_limit_con1",
+                "metadata": {},
+                "data": {}
+              }
+            ],
+            "description": "Copy the value into the charging limit number and call the Rest service to set the charging limit to this new value."
+          },
+          "blueprint_inputs": null,
+          "context": {
+            "id": "01J9KHEN0KPZCJ6R8ATHQBMXMW",
+            "parent_id": null,
+            "user_id": "f08c09205be24cae98b904ece4cc72e7"
+          }
+        },
+        "short_dict": {
+          "last_step": "sequence/1",
+          "run_id": "3ef5fab163c889c538f795f01b70a04c",
+          "state": "stopped",
+          "script_execution": "finished",
+          "timestamp": {
+            "start": "2024-10-07T13:07:15.091936+00:00",
+            "finish": "2024-10-07T13:07:15.109642+00:00"
+          },
+          "domain": "script",
+          "item_id": "put_new_charging_limit"
+        }
+      }
+    ]
+  }
+}
