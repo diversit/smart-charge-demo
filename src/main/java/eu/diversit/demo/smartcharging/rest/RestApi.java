@@ -15,12 +15,15 @@ import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import org.jboss.resteasy.reactive.RestPath;
 import org.jboss.resteasy.reactive.RestResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.util.function.Function;
 
 @Path("/api")
 public class RestApi {
+    private static final Logger LOG = LoggerFactory.getLogger(RestApi.class);
 
     @Inject
     private ChargePoint chargePoint;
@@ -31,6 +34,7 @@ public class RestApi {
     @GET
     @Path("/chargepoint")
     public ChargePointStateDto getChargePointState() {
+        LOG.info("Get chargepoints");
 
         var state = chargePoint.getState();
         var transactions = state.transactions();
@@ -81,6 +85,8 @@ public class RestApi {
     @Path("/chargepoint/{connectorNr}/chargeLimit")
     public RestResponse<Object> setChargeLimit(@RestPath Integer connectorNr,
                                                BigDecimal limit) {
+        LOG.info("Set charge limit on connector {} to {}", connectorNr, limit);
+
         if (connectorNr == 0) {
             return RestResponse.ResponseBuilder.create(RestResponse.Status.BAD_REQUEST)
                     .entity("Connector 0 not allowed")
