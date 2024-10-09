@@ -42,7 +42,7 @@ public class ChargePoint {
     private TransactionIdProvider transactionIdProvider;
 
     @Inject
-    private WebSocketSender outgoingMessages;
+    private WebSocketSender webSocketSender;
 
     // save the last call so can be used when receiving a response
     private WebSocketSender.SendAction lastCall = null;
@@ -50,7 +50,6 @@ public class ChargePoint {
     public ChargePoint(Broadcaster broadcaster) {
         this.broadcaster = broadcaster;
     }
-
 
     public ChargePointState getState() {
         return new ChargePointState(
@@ -74,7 +73,7 @@ public class ChargePoint {
      * @param payload
      */
     private void sendCommand(Action.ByCentralSystem action, Option<Object> payload) {
-        outgoingMessages.sendCommand(chargeBoxId, action, payload)
+        webSocketSender.sendCommand(chargeBoxId, action, payload)
                 .peek(callSend -> {
                     lastCall = callSend;
                 });
