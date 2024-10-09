@@ -1,0 +1,771 @@
+<!doctype html>
+<html class="text-gray-900 leading-tight" lang="en">
+<head>
+    <title>Charge Point - OCPP 1.6</title>
+    <meta charset="UTF-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <script defer src="./GetConfigurationData.js" type="text/javascript"></script>
+    <!--    <script defer src="./simulator_16.js" type="text/javascript"></script>-->
+    <script>
+        let _websocket = null
+        let _websocketConnected = false
+        let _lastAction = null
+        let _lastAuthorized = null
+        let _loopSentMeterValues = null
+        let _connector_locked = false
+        let _heartbeatInterval = null
+
+        function formatDate(date) {
+          // format date as ISO 8601 in UTC zone
+          return date.toISOString()
+        }
+
+        function isConnected() {
+          if (_websocketConnected === false) {
+            $('#block_actions').hide()
+            $('#block_transaction').hide()
+
+            $('#heartbeat').prop('disabled', true)
+            $('#CP').prop('disabled', false)
+          } else {
+            $('#block_actions').show()
+
+            $('#heartbeat').prop('disabled', false)
+            $('#CP').prop('disabled', true)
+          }
+        }
+
+        function randomId(length = 36) {
+          const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+          let id = ''
+          for (let i = 0; i < length; i++) {
+            id += possible.charAt(Math.floor(Math.random() * possible.length))
+          }
+          return id
+        }
+
+        function wsConnect() {
+          if (_websocket) {
+            _websocket.close(3001)
+          } else {
+            const CP = $('#CP').val()
+
+            _websocket = new WebSocket(CP, ['ocpp1.6', 'ocpp1.5'])
+            _websocket.onopen = () => {
+              _websocketConnected = true
+
+              _lastAction = 'BootNotification'
+
+              BootNotification()
+
+              setTimeout(function () {
+                StatusNotification(0, 'Available')
+                StatusNotification(1, 'Available')
+                StatusNotification(2, 'Available')
+
+                setTimeout(function () {
+                  startHB(60000)
+                }, 500)
+              }, 500)
+
+              $('#connect').text('Disconnect').addClass('bg-green-500')
+
+              isConnected()
+            }
+
+            _websocket.onmessage = handleWebSocketMessage
+            _websocket.onclose = handleWebSocketClose
+            _websocket.onerror = handleWebSocketError
+          }
+        }
+
+        function logMsg(err) {
+          console.info(err)
+          $('#console').prepend('<li>' + err + '</li>')
+        }
+
+        function Authorize() {
+          _lastAction = 'Authorize'
+          const Auth = JSON.stringify([2, randomId(), 'Authorize', { idTag: $('#TAG').val() }])
+          _websocket.send(Auth)
+        }
+
+        function startTransaction(connector, tag) {
+          _lastAction = 'startTransaction'
+          let connectorId = connector || parseInt($('#CUID').val())
+          const idTag = tag || $('#TAG').val()
+
+          if (connectorId === 0) {
+            $('#CUID').val(1)
+            connectorId = 1
+          }
+
+          $('#transaction').text('Stop Transaction').addClass('bg-green-500')
+
+          const strtT = JSON.stringify([
+            2,
+            randomId(),
+            'StartTransaction',
+            {
+              connectorId: connectorId,
+              idTag: idTag,
+              timestamp: formatDate(new Date()),
+              meterStart: Number($('#metervalue').val()),
+              reservationId: 0,
+            },
+          ])
+          _websocket.send(strtT)
+        }
+
+        function stopTransaction() {
+          _lastAction = 'stopTransaction'
+
+          const lastSampledValue = Number($('#metervalue').val())
+
+          $('#transaction').text('Start Transaction').removeClass('bg-green-500').removeClass('bg-yellow-500')
+
+          const stpT = JSON.stringify([
+            2,
+            randomId(),
+            'StopTransaction',
+            {
+              transactionId: Number($('#transactionId').val()),
+              idTag: $('#TAG').val(),
+              timestamp: formatDate(new Date()),
+              meterStop: lastSampledValue,
+              reason: 'Local', // Local, Remote, Emergency, Other
+              transactionData: createMeterValuesObject(lastSampledValue, 0),
+            },
+          ])
+          _websocket.send(stpT)
+
+          /// Also stop the loop of sending meter values
+          stopSendingMeterValues()
+        }
+
+        function TriggerMessageReply(id, status) {
+          const remStrt = JSON.stringify([3, id, { status: status }])
+          _websocket.send(remStrt)
+        }
+
+        function BootNotification() {
+          _lastAction = 'BootNotification'
+          const BN = JSON.stringify([
+            2,
+            randomId(),
+            'BootNotification',
+            {
+              chargePointVendor: 'VendorName',
+              chargePointModel: 'VendorName-CHARGER',
+              chargePointSerialNumber: 'vendor.001.13.1',
+              chargeBoxSerialNumber: 'vendor.001.13.1.01',
+              firmwareVersion: '0.9.87',
+              iccid: '',
+              imsi: '',
+              meterType: 'VendorName NQC-ACDC',
+              meterSerialNumber: 'vendor.001.13.1.01',
+            },
+          ])
+
+          logMsg('ws connected')
+
+          _websocket.send(BN)
+        }
+
+        function StatusNotification(connectorId, status) {
+          _lastAction = 'StatusNotification'
+          logMsg('StatusNotification: ' + connectorId + ' - ' + status)
+          const SN = JSON.stringify([
+            2,
+            randomId(),
+            'StatusNotification',
+            {
+              connectorId: connectorId,
+              status: status,
+              errorCode: 'NoError',
+              // info: "",
+              timestamp: formatDate(new Date()),
+              // vendorId: "",
+              // vendorErrorCode: "",
+            },
+          ])
+          _websocket.send(SN)
+        }
+
+        function startHB(interval) {
+          logMsg('Start heartbeat (' + interval + 'ms)')
+          _heartbeatInterval = setInterval(send_heartbeat, interval)
+        }
+
+        function send_heartbeat() {
+          _lastAction = 'Heartbeat'
+          const HB = JSON.stringify([2, randomId(), 'Heartbeat', {}])
+          _websocket.send(HB)
+        }
+
+        function send_datatransfer() {
+          _lastAction = 'DataTransfer'
+          const DT = JSON.stringify([
+            2,
+            randomId(),
+            'DataTransfer',
+            {
+              vendorId: 'rus.vendor.cp',
+              messageId: 'GetChargeInstruction',
+              data: '',
+            },
+          ])
+          _websocket.send(DT)
+        }
+
+        function send_meterValue() {
+          _lastAction = 'MeterValues'
+          const connectorId = Number($('#CUID').val())
+          const metervalue = Number($('#metervalue').val())
+          const transactionId = Number($('#transactionId').val())
+          const meteramps = Number($('#amps').val())
+
+          if (connectorId === undefined || metervalue === undefined || transactionId === undefined) {
+            logMsg('Sending MeterValues failed - connectorId, metervalue or transactionId is undefined!')
+            return
+          }
+
+          const MV = JSON.stringify([
+            2,
+            randomId(),
+            'MeterValues',
+            {
+              connectorId: connectorId,
+              transactionId: transactionId,
+              meterValue: createMeterValuesObject(metervalue, meteramps),
+            },
+          ])
+
+          _websocket.send(MV)
+        }
+
+        function createMeterValuesObject(metervalue, meteramps) {
+          return [
+            {
+              timestamp: formatDate(new Date()),
+              sampledValue: [
+                meteramps > 0
+                  ? {
+                      value: metervalue,
+                      context: 'Sample.Periodic',
+                      format: 'Raw',
+                      measurand: 'Energy.Active.Import.Register',
+                      location: 'Outlet',
+                      unit: 'kWh',
+                    }
+                  : null,
+                {
+                  value: meteramps,
+                  context: 'Sample.Periodic',
+                  format: 'Raw',
+                  measurand: 'Current.Import',
+                  phase: 'L1',
+                  location: 'Outlet',
+                  unit: 'A',
+                },
+                {
+                  value: meteramps,
+                  context: 'Sample.Periodic',
+                  format: 'Raw',
+                  measurand: 'Current.Import',
+                  phase: 'L2',
+                  location: 'Outlet',
+                  unit: 'A',
+                },
+                {
+                  value: meteramps,
+                  context: 'Sample.Periodic',
+                  format: 'Raw',
+                  measurand: 'Current.Import',
+                  phase: 'L3',
+                  location: 'Outlet',
+                  unit: 'A',
+                },
+              ].filter(Boolean),
+            },
+          ]
+        }
+
+        function handleSetChargeProfile(profile) {
+          const profileText = JSON.stringify(profile)
+
+          logMsg('' + profileText)
+          $('#chargeProfile').text(profileText)
+
+          // var connectorId = profile.connectorId;
+          // var chargingProfileId = profile.csChargingProfiles.chargingProfileId;
+          const chargingLimit = profile.csChargingProfiles.chargingSchedule.chargingSchedulePeriod[0].limit
+
+          $('#amps').val(chargingLimit)
+
+          if (chargingLimit === 0) {
+            /// send SuspendedEVSE status
+            stopSendingMeterValues()
+            $('#ConnectorStatus').val('SuspendedEVSE')
+            $('#transaction').removeClass('bg-green-500').addClass('bg-yellow-500')
+            StatusNotification($('#CUID').val(), 'SuspendedEVSE')
+          } else {
+            /// send Charging status
+            if ($('#ConnectorStatus').val() === 'SuspendedEVSE') {
+              $('#ConnectorStatus').val('Charging')
+              $('#transaction').removeClass('bg-yellow-500').addClass('bg-green-500')
+              StatusNotification($('#CUID').val(), 'Charging')
+            }
+          }
+        }
+
+        function send_and_increase_metervalues() {
+          const currentLoad = Number($('#amps').val())
+
+          if (currentLoad > 0) {
+            const val = Number($('#metervalue').val())
+            $('#metervalue').val(val + 1)
+          }
+
+          send_meterValue()
+        }
+
+        function stopSendingMeterValues() {
+          if (_loopSentMeterValues !== null) {
+            clearInterval(_loopSentMeterValues)
+            _loopSentMeterValues = null;
+            $('#mvp').text('MV loop start').removeClass('bg-yellow-500')
+          }
+        }
+
+        function handleWebSocketMessage(msg) {
+          const ddata = JSON.parse(msg.data)
+
+          if (ddata[0] === 3) {
+            if (_lastAction === 'Authorize') {
+              logMsg('Response ' + _lastAction + ': ' + JSON.stringify(ddata[2]))
+
+              if (ddata[2].idTagInfo.status === 'Accepted') {
+                _lastAuthorized = $('#TAG').val()
+                $('#send').text('Authorized').addClass('bg-green-500')
+              }
+            } else if (_lastAction === 'startTransaction') {
+              logMsg('Response ' + _lastAction + ': ' + JSON.stringify(ddata[2]))
+
+              _connector_locked = true
+              const transactionId = ddata[2].transactionId
+              $('#transactionId').val(transactionId)
+              $('#CUID').prop('disabled', true)
+
+              $('#ConnectorStatus').val('Charging')
+              StatusNotification($('#CUID').val(), 'Charging')
+
+              $('#block_transaction').show()
+            } else if (_lastAction === 'stopTransaction') {
+              logMsg('Response ' + _lastAction + ': ' + JSON.stringify(ddata[2]))
+
+              _connector_locked = false
+              $('#transactionId').val('')
+              $('#CUID').prop('disabled', false)
+              // set connector status to Finishing
+              $('#ConnectorStatus').val('Finishing')
+              StatusNotification($('#CUID').val(), 'Finishing')
+
+              setTimeout(function () {
+                // set connector status to Preparing (since connector still connected to cp)
+                $('#ConnectorStatus').val('Preparing')
+                StatusNotification($('#CUID').val(), 'Preparing')
+              }, 500)
+
+              $('#block_transaction').hide()
+            } else if (_lastAction === 'MeterValues') {
+              console.info('Response ' + _lastAction + ': ' + JSON.stringify(ddata[2]))
+            } else {
+              logMsg('Response ' + _lastAction + ': ' + JSON.stringify(ddata[2]))
+            }
+          } else if (ddata[0] === 4) {
+            logMsg('Data exchange failed - JSON is not accepted!')
+          } else if (ddata[0] === 2) {
+            logMsg(ddata[2])
+            const responseId = ddata[1]
+            let responseStatus
+
+            switch (ddata[2]) {
+              case 'ReserveNow':
+                if (ddata[3].idTag.toLowerCase().includes('faulted')) {
+                  responseStatus = 'Faulted'
+                } else if (ddata[3].idTag.toLowerCase().includes('occupied')) {
+                  responseStatus = 'Occupied'
+                } else if (ddata[3].idTag.toLowerCase().includes('rejected')) {
+                  responseStatus = 'Rejected'
+                } else if (ddata[3].idTag.toLowerCase().includes('unavailable')) {
+                  responseStatus = 'Unavailable'
+                } else {
+                  responseStatus = 'Accepted'
+                }
+                _websocket.send(JSON.stringify([3, responseId, { status: responseStatus }]))
+                break
+              case 'CancelReservation':
+                if (ddata[3].idTag.toLowerCase().includes('rejected')) {
+                  responseStatus = 'Rejected'
+                } else {
+                  responseStatus = 'Accepted'
+                }
+                _websocket.send(JSON.stringify([3, responseId, { status: responseStatus }]))
+                break
+              case 'ClearChargingProfile':
+                _websocket.send(JSON.stringify([3, responseId, { status: 'Accepted' }]))
+                break
+              case 'SetChargingProfile':
+                handleSetChargeProfile(ddata[3])
+                _websocket.send(JSON.stringify([3, responseId, { status: 'Accepted' }]))
+                break
+              case 'Reset': {
+                // Reset type SOFT, HARD
+                const ResetS = JSON.stringify([3, responseId, { status: 'Accepted' }])
+                _websocket.send(ResetS)
+                location.reload()
+                break
+              }
+              case 'RemoteStopTransaction': {
+                // TransactionID
+                _websocket.send(JSON.stringify([3, responseId, { status: 'Accepted' }]))
+
+                const stop_id = ddata[3].transactionId
+
+                stopTransaction(stop_id)
+                break
+              }
+              case 'RemoteStartTransaction':
+                // Need to get idTag, connectorId (map - ddata[3])
+                // Need to save charge limit when provided in data
+                _websocket.send(JSON.stringify([3, responseId, { status: 'Accepted' }]))
+                startTransaction(ddata[3].connectorId, ddata[3].idTag)
+
+                const profile = ddata[3].chargingProfile
+                const chargingLimit = profile.chargingSchedule.chargingSchedulePeriod[0].limit
+                $('#amps').val(chargingLimit)
+
+                const profileText = JSON.stringify(profile)
+                logMsg('' + profileText)
+                $('#chargeProfile').text(profileText)
+
+                break
+              case 'UnlockConnector':
+                // connectorId
+                if (_connector_locked === true) {
+                  _websocket.send(JSON.stringify([3, responseId, { status: 'Unlocked' }]))
+                  _connector_locked = false
+                  logMsg('Connector status changed to: ' + _connector_locked)
+                } else {
+                  _websocket.send(JSON.stringify([3, responseId, {status: 'NotSupported'}]))
+                  logMsg('Connector not locked')
+                }
+                break
+              case 'TriggerMessage':
+                // Called by CPMS asking ChargePoint to execute the instruction
+                // Implemented for MeterValues
+
+                switch (ddata[3].requestedMessage) {
+                  case 'MeterValues':
+                    TriggerMessageReply(responseId, 'Accepted')
+                    send_meterValue()
+                    break
+                  case 'BootNotification':
+                    TriggerMessageReply(responseId, 'Accepted')
+                    BootNotification()
+                    break
+                  case 'StatusNotification':
+                    TriggerMessageReply(responseId, 'Accepted')
+                    StatusNotification(ddata[3].connectorId, 'Available')
+                    break
+                  // a case to test when chargepoint rejects triggered message
+                  case 'DiagnosticsStatusNotification':
+                    TriggerMessageReply(responseId, 'Rejected')
+                    break
+                  // a case to test when chargepoint responses with NOT_IMPLEMENTED
+                  case 'FirmwareStatusNotification':
+                    TriggerMessageReply(responseId, 'NotImplemented')
+                    break
+                  default:
+                    _websocket.send(JSON.stringify([4, responseId]))
+                }
+
+                break
+              case 'GetConfiguration':
+                const UC = JSON.stringify([3, responseId, getConfigurationData])
+                _websocket.send(UC)
+                break
+              default:
+                _websocket.send(JSON.stringify([4, responseId, 'Unsupported', 'Unsupported call "' + ddata[2] + '"']))
+                break
+            }
+          }
+        }
+
+        function handleWebSocketClose(evt) {
+          $('#connect').text('Connect')
+          if (evt.code === 3001) {
+            logMsg('ws closed')
+            _websocket = null
+            _websocketConnected = false
+          } else {
+            logMsg('ws connection error: ' + evt.code)
+            $('#console').html('')
+            _websocket = null
+            _websocketConnected = false
+            wsConnect()
+          }
+          clearInterval(_heartbeatInterval)
+          isConnected()
+        }
+
+        function handleWebSocketError(evt) {
+          if (_websocket.readyState === 1) {
+            logMsg('ws normal error: ' + evt.type)
+          }
+        }
+
+        $(document).ready(function () {
+          //bind controls
+          $('#connect').click(function () {
+            $('#console').html('')
+            wsConnect()
+          })
+
+          $('#send').click(function () {
+            Authorize()
+          })
+
+          $('#TAG').on('input', function () {
+            if (_lastAuthorized !== $('#TAG').val()) {
+              _lastAuthorized = ''
+              $('#send').text('Authorize').removeClass('bg-green-500')
+            }
+          })
+
+          $('#transaction').click(function () {
+            const transactionId = $('#transactionId').val()
+            if (transactionId !== '') {
+              stopSendingMeterValues()
+              stopTransaction()
+            } else {
+              startTransaction()
+            }
+          })
+
+          $('#mvp').click(function () {
+            if (_loopSentMeterValues !== null) {
+              stopSendingMeterValues()
+            } else {
+              $('#mvp').text('MV loop stop').addClass('bg-yellow-500')
+
+              send_and_increase_metervalues()
+              _loopSentMeterValues = setInterval(send_and_increase_metervalues, $('#meterInterval').val())
+            }
+          })
+
+          $('#heartbeat').click(function () {
+            send_heartbeat()
+          })
+
+          $('#status').click(function () {
+            _lastAction = 'StatusNotification'
+            const connectorId = parseInt($('#CUID').val())
+            const status = $('#ConnectorStatus').val()
+            StatusNotification(connectorId, status)
+          })
+
+          $('#data_transfer').click(function () {
+            send_datatransfer()
+          })
+
+          $('#connect').on('change', function () {
+            if (_websocket) {
+              _websocket.close(3001)
+            }
+          })
+
+          $('#transactionId').on('change', function () {
+            if ($('#transactionId').val() !== '') {
+              $('#block_transaction').show()
+            } else {
+              $('#block_transaction').hide()
+            }
+          })
+          isConnected()
+        })
+
+        $(document).ready(function () {
+          $('#commands').show()
+          $('#output').hide()
+
+          const params = new URLSearchParams(window.location.search)
+          let cp = params.get('cp')
+          let tag = params.get('tag')
+
+          if (cp === null || cp.length === 0) {
+            cp = 'STATION1'
+          }
+
+          if (tag === null || tag.length === 0) {
+            tag = 'Tag1'
+          }
+
+          $('#CP').val('ws://localhost:8080/ocpp/' + cp)
+          $('#TAG').val(tag)
+        })
+        $('#show-commands').on('click', function () {
+          $('#commands').show()
+          $('#output').hide()
+        })
+        $('#show-output').on('click', function () {
+          $('#commands').hide()
+          $('#output').show()
+        })
+    </script>
+
+    <style>
+        input[disabled] {
+          background-color: lightgrey;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen bg-gray-100">
+<div class="flex w-100" id="tabs">
+    <button class="flex-1 bg-gray-700 text-white py-2 px-4 m-1 shadow-md" id="show-commands" type="button">Commands
+    </button>
+    <button class="flex-1 bg-gray-700 text-white py-2 px-4 m-1 shadow-md" id="show-output" type="button">Output</button>
+</div>
+<div id="commands">
+    <div class="p-1" id="block_connect">
+        <div class="flex w-full gap-2">
+            <div class="w-full">
+                <input class="w-full" id="CP" placeholder="CPO" type="text" value="ws://localhost:8080/ocpp/STATION1"/>
+            </div>
+
+            <button class="py-2 px-4 h-100 bg-blue-500 text-white font-semibold shadow-md hover:bg-blue-700"
+                    id="connect">
+                Connect
+            </button>
+        </div>
+    </div>
+
+    <div class="p-1" id="block_actions">
+        <div class="flex w-full gap-2">
+            <div class="w-full">
+                <input class="w-full" id="TAG" placeholder="Tag" type="text" value="AUTHTAG123"/>
+            </div>
+
+            <button
+                    class="py-2 px-4 h-100 bg-blue-500 text-white font-semibold shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75"
+                    id="send"
+            >
+                Authorize
+            </button>
+            <button
+                    class="py-2 px-4 h-100 bg-blue-500 text-white font-semibold shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75"
+                    id="heartbeat"
+            >
+                Heartbeat
+            </button>
+
+            <button
+                    class="py-2 px-4 h-100 bg-blue-500 text-white font-semibold shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75"
+                    id="data_transfer"
+            >
+                DT
+            </button>
+        </div>
+
+        <div class="flex w-full p-1 gap-2">
+            <div>
+                <label for="CUID">connector</label>
+                <input class="w-32" id="CUID" placeholder="Connector uid" type="number" value="0"/>
+            </div>
+
+            <div>
+                <label for="ConnectorStatus">status</label>
+                <select class="w-42" id="ConnectorStatus" name="ConnectorStatus">
+                    <option value="Available">Available</option>
+                    <option value="Preparing">Preparing</option>
+                    <option value="Charging">Charging</option>
+                    <option value="SuspendedEVSE">SuspendedEVSE</option>
+                    <option value="SuspendedEV">SuspendedEV</option>
+                    <option value="Finishing">Finishing</option>
+                    <option value="Reserved">Reserved</option>
+                    <option value="Unavailable">Unavailable</option>
+                    <option value="Faulted">Faulted</option>
+                </select>
+            </div>
+
+            <button
+                    class="w-full py-2 px-4 bg-blue-500 text-white font-semibold shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75"
+                    id="status"
+            >
+                Status
+            </button>
+        </div>
+
+        <div class="flex w-full p-1 gap-2">
+            <div>
+                <label for="transactionId">transaction</label>
+                <input
+                        autocomplete="off"
+                        class="w-24"
+                        disabled
+                        id="transactionId"
+                        placeholder="transactionId"
+                        type="number"
+                        value=""
+                />
+            </div>
+
+            <div>
+                <label for="amps">meter (A)</label>
+                <input class="w-20" id="amps" placeholder="Meter current" type="number" value="16"/>
+            </div>
+
+            <div>
+                <label for="metervalue">meter (wH)</label>
+                <input class="w-24" id="metervalue" placeholder="Meter value" type="number" value="1"/>
+            </div>
+
+            <button
+                    class="w-full py-2 px-4 bg-blue-500 text-white font-semibold shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75"
+                    id="transaction"
+            >
+                Start
+            </button>
+        </div>
+    </div>
+
+    <div class="p-1" id="block_transaction">
+        <div class="flex w-full p-1 gap-2">
+            <div>
+                <input class="w-full" id="meterInterval" placeholder="meterInterval" type="number" value="10000"/>
+            </div>
+            <button
+                    class="py-2 px-4 bg-blue-500 text-white font-semibold shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75"
+                    id="mvp"
+            >
+                MV loop start
+            </button>
+        </div>
+        <div class="flex w-full p-1 gap-2">
+            <textarea autocorrect="off" class="text-xs" id="chargeProfile" style="width: inherit;"></textarea>
+        </div>
+    </div>
+</div>
+<div id="output">
+    <div class="console p-2 px-2">
+        <ul id="console"></ul>
+    </div>
+</div>
+</body>
+</html>

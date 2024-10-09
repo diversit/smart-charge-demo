@@ -22,7 +22,7 @@ sdk env
 
 Open the dashboard on http://localhost:8080.
 
-Open the [simulator_1.6.html](./simulator_1.6.html) in a browser.
+Open the [simulator/better_simulator.html](./simulator/better_simulator.html) in a browser.
 
 Start Home Assistant
 In `home-assistant` folder, run:
@@ -193,9 +193,11 @@ The dashboard is live updated with changes.
 
 ## Charge point simulator
 
-In `simulator_1.6.html` is a simple simulator to test the CPO.
+The `simulator` folder contains some Charge point simulators to test the CPO.
 
-Note: it is far from perfect. It does nothing by itself. You have to do all state changes manually!
+`simulator_1.6.html` is a simple simulator. It does nothing by itself. You have to do all state changes manually!
+
+`better_simulator.html` is a bit 'smarter'. It starts actions based on remote operations. It also supports more operations.
 
 ## Home Assistant
 
