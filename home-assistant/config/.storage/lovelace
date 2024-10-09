@@ -1,0 +1,227 @@
+{
+  "version": 1,
+  "minor_version": 1,
+  "key": "lovelace",
+  "data": {
+    "config": {
+      "views": [
+        {
+          "title": "EV Charger",
+          "path": "ev-charger",
+          "icon": "mdi:ev-station",
+          "cards": [
+            {
+              "type": "entities",
+              "entities": [
+                {
+                  "entity": "sensor.chargepoint"
+                },
+                {
+                  "type": "attribute",
+                  "entity": "sensor.chargepoint",
+                  "attribute": "timestamp",
+                  "icon": "mdi:clock-outline",
+                  "name": "Last state change",
+                  "format": "datetime"
+                },
+                {
+                  "type": "attribute",
+                  "entity": "sensor.chargepoint",
+                  "attribute": "chargePointId",
+                  "name": "Charge point id",
+                  "icon": "mdi:identifier"
+                },
+                {
+                  "type": "section",
+                  "label": "Connector 1"
+                },
+                {
+                  "entity": "sensor.connector_1"
+                },
+                {
+                  "type": "attribute",
+                  "entity": "sensor.connector_1",
+                  "attribute": "timestamp",
+                  "name": "Last state change",
+                  "format": "datetime",
+                  "icon": "mdi:clock-outline"
+                },
+                {
+                  "entity": "sensor.connector_1_metervalue",
+                  "name": "Meter value"
+                },
+                {
+                  "type": "section",
+                  "label": "Transaction"
+                },
+                {
+                  "type": "attribute",
+                  "entity": "sensor.connector_1",
+                  "attribute": "idTag",
+                  "name": "Id Tag",
+                  "icon": "mdi:id-card"
+                },
+                {
+                  "type": "attribute",
+                  "entity": "sensor.connector_1",
+                  "attribute": "txId",
+                  "name": "Last transaction id",
+                  "icon": "mdi:identifier"
+                },
+                {
+                  "type": "attribute",
+                  "entity": "sensor.connector_1",
+                  "attribute": "txStartTimestamp",
+                  "name": "Last transaction start",
+                  "format": "datetime",
+                  "icon": "mdi:timer-play-outline"
+                },
+                {
+                  "type": "conditional",
+                  "conditions": [
+                    {
+                      "entity": "sensor.connector_1",
+                      "state_not": "Charging"
+                    }
+                  ],
+                  "row": {
+                    "type": "attribute",
+                    "entity": "sensor.connector_1",
+                    "attribute": "txStopTimestamp",
+                    "icon": "mdi:timer-stop-outline",
+                    "name": "Transaction stopped",
+                    "format": "datetime"
+                  }
+                },
+                {
+                  "type": "conditional",
+                  "conditions": [
+                    {
+                      "entity": "sensor.connector_1",
+                      "state_not": "Charging"
+                    }
+                  ],
+                  "row": {
+                    "type": "custom:template-entity-row",
+                    "icon": "mdi:timer-check-outline",
+                    "name": "Charge duration",
+                    "state": "{% if state_attr('sensor.connector_1', 'txId') is not none %} {% set stop = state_attr(\"sensor.connector_1\", \"txStopTimestamp\") %} {% set start = state_attr(\"sensor.connector_1\", \"txStartTimestamp\") %} {% set time = (stop - start) // 1000 %} {% set seconds = (time % 60) %} {% set seconds = ' {}s'.format(seconds) if seconds > 0 else '' %} {% set minutes = ((time % 3600) // 60) %} {% set minutes = ' {}m'.format(minutes) if minutes > 0 else '' %} {% set hours = ((time % 86400) // 3600) %} {% set hours = ' {}h '.format(hours) if hours > 0 else '' %} {% set days = (time // 86400) %} {% set days = '{}d'.format(days) if days > 0 else '' %} {{ days + hours + minutes + seconds }}         {% endif %}"
+                  }
+                },
+                {
+                  "type": "attribute",
+                  "entity": "sensor.connector_1",
+                  "attribute": "meterStart",
+                  "name": "Meter start",
+                  "suffix": "kWh",
+                  "icon": "mdi:meter-electric-outline"
+                },
+                {
+                  "type": "attribute",
+                  "entity": "sensor.connector_1",
+                  "attribute": "lastMeterValue",
+                  "name": "Last meter value",
+                  "suffix": "kWh",
+                  "icon": "mdi:meter-electric-outline"
+                },
+                {
+                  "type": "attribute",
+                  "entity": "sensor.connector_1",
+                  "attribute": "totalCharged",
+                  "name": "Total charged",
+                  "suffix": "kWh",
+                  "icon": "mdi:battery-charging-high"
+                }
+              ],
+              "title": "Charger"
+            },
+            {
+              "type": "entities",
+              "entities": [
+                {
+                  "type": "custom:slider-entity-row",
+                  "entity": "input_number.solar_production"
+                }
+              ]
+            },
+            {
+              "type": "entities",
+              "entities": [
+                {
+                  "type": "custom:slider-entity-row",
+                  "name": "New Charging Limit",
+                  "show_icon": false,
+                  "hide_when_off": false,
+                  "toggle": false,
+                  "full_row": false,
+                  "entity": "input_number.new_charge_limit"
+                }
+              ]
+            },
+            {
+              "show_name": true,
+              "show_icon": true,
+              "type": "button",
+              "tap_action": {
+                "action": "perform-action",
+                "perform_action": "script.put_new_charging_limit",
+                "target": {}
+              },
+              "name": "Set charging limit",
+              "hold_action": {
+                "action": "none"
+              },
+              "show_state": true,
+              "icon": "mdi:radiobox-marked",
+              "icon_height": "100px",
+              "entity": "input_number.charge_limit"
+            }
+          ],
+          "badges": [
+            {
+              "type": "entity",
+              "show_name": false,
+              "show_state": true,
+              "show_icon": true,
+              "entity": "sensor.chargepoint"
+            }
+          ]
+        },
+        {
+          "path": "default_view",
+          "title": "Home",
+          "cards": [
+            {
+              "type": "entities",
+              "entities": [
+                "person.demo"
+              ]
+            },
+            {
+              "type": "entities",
+              "entities": [
+                "input_number.charge_limit",
+                "input_number.new_charge_limit"
+              ],
+              "title": "Helpers"
+            },
+            {
+              "type": "entities",
+              "entities": [
+                "sensor.chargepoint",
+                "sensor.connector_1",
+                "sensor.connector_1_metervalue"
+              ],
+              "title": "Sensor"
+            },
+            {
+              "type": "weather-forecast",
+              "entity": "weather.forecast_home",
+              "show_forecast": false
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

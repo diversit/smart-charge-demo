@@ -1,0 +1,63 @@
+- id: '1727598145435'
+  alias: Solar power - increase charging
+  description: Increase charging when producing solar power
+  trigger:
+  - platform: template
+    value_template: '{% set solarKWh = states(''input_number.solar_production'') |
+      float %} {% set solarAmp = solarKWh / 235 %} {% set solarAmpRounded = solarAmp
+      | round(1) %} {% set newChargeLimit = states(''input_number.new_charge_limit'')
+      | float %}   {{ solarKWh > 1500 and solarAmpRounded > newChargeLimit }}'
+    for: 00:00:10
+  condition:
+  - condition: numeric_state
+    entity_id: input_number.solar_production
+    above: 1500
+  action:
+  - action: input_number.set_value
+    alias: Set new charge limit with maximum of 16A
+    metadata: {}
+    data:
+      value: '{% set solarKWh = states(''input_number.solar_production'') | float
+        %} {% set solarAmp = solarKWh / 235 %} {% set solarAmpRounded = solarAmp |
+        round(1) %} {{ [solarAmpRounded, 16] | min }}'
+    target:
+      entity_id: input_number.new_charge_limit
+  - action: script.put_new_charging_limit
+    alias: Put new charging limit
+  mode: restart
+- id: '1727598715683'
+  alias: Solar power - decrease charging
+  description: Decrease charging when producing solar power decreases
+  trigger:
+  - platform: template
+    value_template: '{% set solarKWh = states(''input_number.solar_production'') |
+      float %} {% set solarAmp = solarKWh / 235 %} {% set solarAmpRounded = solarAmp
+      | round(1) %} {% set newChargeLimit = states(''input_number.new_charge_limit'')
+      | float %} {{ solarAmpRounded < newChargeLimit }}'
+  condition: []
+  action:
+  - if:
+    - condition: numeric_state
+      entity_id: input_number.solar_production
+      below: 1500
+    then:
+    - action: input_number.set_value
+      alias: Stop charging
+      data:
+        value: 0
+      target:
+        entity_id: input_number.new_charge_limit
+    else:
+    - action: input_number.set_value
+      alias: Decrease charging with maximum of 16A
+      metadata: {}
+      data:
+        value: '{% set solarKWh = states(''input_number.solar_production'') | float
+          %} {% set solarAmp = solarKWh / 235 %} {% set solarAmpRounded = solarAmp
+          | round(1) %} {{ [solarAmpRounded, 16] | min }}'
+      target:
+        entity_id: input_number.new_charge_limit
+  - action: script.put_new_charging_limit
+    alias: Put new charging limit
+    data: {}
+  mode: single

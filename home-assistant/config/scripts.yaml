@@ -1,0 +1,13 @@
+put_new_charging_limit:
+  alias: Put new charging limit
+  sequence:
+  - action: input_number.set_value
+    target:
+      entity_id: input_number.charge_limit
+    data:
+      value: '{{ states(''input_number.new_charge_limit'') }}'
+  - action: rest_command.set_charging_limit_con1
+    metadata: {}
+    data: {}
+  description: Copy the value into the charging limit number and call the Rest service
+    to set the charging limit to this new value.

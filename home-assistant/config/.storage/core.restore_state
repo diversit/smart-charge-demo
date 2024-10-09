@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "minor_version": 1,
+  "key": "core.restore_state",
+  "data": [
+    {
+      "state": {"entity_id":"person.demo","state":"unknown","attributes":{"editable":true,"id":"demo","device_trackers":[],"user_id":"f08c09205be24cae98b904ece4cc72e7","friendly_name":"demo"},"last_changed":"2024-10-07T13:01:38.839611+00:00","last_reported":"2024-10-07T13:01:39.872357+00:00","last_updated":"2024-10-07T13:01:39.872357+00:00","context":{"id":"01J9KH4DN03CY0R6GY1KKJ1A3S","parent_id":null,"user_id":null}},
+      "extra_data": null,
+      "last_seen": "2024-10-07T13:12:25.118435+00:00"
+    },
+    {
+      "state": {"entity_id":"script.put_new_charging_limit","state":"off","attributes":{"last_triggered":"2024-10-07T13:07:15.092133+00:00","mode":"single","current":0,"friendly_name":"Put new charging limit"},"last_changed":"2024-10-07T13:07:15.106715+00:00","last_reported":"2024-10-07T13:07:15.106715+00:00","last_updated":"2024-10-07T13:07:15.106715+00:00","context":{"id":"01J9KHEN0KPZCJ6R8ATHQBMXMW","parent_id":null,"user_id":"f08c09205be24cae98b904ece4cc72e7"}},
+      "extra_data": null,
+      "last_seen": "2024-10-07T13:12:25.118435+00:00"
+    },
+    {
+      "state": {"entity_id":"input_number.new_charge_limit","state":"0.0","attributes":{"initial":null,"editable":true,"min":0.0,"max":16.0,"step":0.1,"mode":"slider","unit_of_measurement":"A","icon":"mdi:lightning-bolt","friendly_name":"new_charge_limit"},"last_changed":"2024-10-07T13:07:14.316751+00:00","last_reported":"2024-10-07T13:07:14.316751+00:00","last_updated":"2024-10-07T13:07:14.316751+00:00","context":{"id":"01J9KHEM8C7TJ7D4SH04Q905TC","parent_id":null,"user_id":"f08c09205be24cae98b904ece4cc72e7"}},
+      "extra_data": null,
+      "last_seen": "2024-10-07T13:12:25.118435+00:00"
+    },
+    {
+      "state": {"entity_id":"input_number.charge_limit","state":"0.0","attributes":{"initial":null,"editable":true,"min":0.0,"max":100.0,"step":1.0,"mode":"slider","unit_of_measurement":"A","icon":"mdi:lightning-bolt","friendly_name":"charge_limit"},"last_changed":"2024-10-07T13:07:15.094296+00:00","last_reported":"2024-10-07T13:07:15.094296+00:00","last_updated":"2024-10-07T13:07:15.094296+00:00","context":{"id":"01J9KHEN0KPZCJ6R8ATHQBMXMW","parent_id":null,"user_id":"f08c09205be24cae98b904ece4cc72e7"}},
+      "extra_data": null,
+      "last_seen": "2024-10-07T13:12:25.118435+00:00"
+    },
+    {
+      "state": {"entity_id":"input_number.solar_production","state":"1392.0","attributes":{"initial":null,"editable":true,"min":0.0,"max":10000.0,"step":1.0,"mode":"slider","unit_of_measurement":"kWh","icon":"mdi:solar-power","friendly_name":"solar_production"},"last_changed":"2024-10-07T13:01:39.111353+00:00","last_reported":"2024-10-07T13:01:39.111353+00:00","last_updated":"2024-10-07T13:01:39.111353+00:00","context":{"id":"01J9KH4CX779WKDB9CK1073W6W","parent_id":null,"user_id":null}},
+      "extra_data": null,
+      "last_seen": "2024-10-07T13:12:25.118435+00:00"
+    },
+    {
+      "state": {"entity_id":"conversation.home_assistant","state":"unknown","attributes":{"friendly_name":"Home Assistant","supported_features":1},"last_changed":"2024-10-07T13:01:39.114016+00:00","last_reported":"2024-10-07T13:01:39.114016+00:00","last_updated":"2024-10-07T13:01:39.114016+00:00","context":{"id":"01J9KH4CXAQ4WKRF2PNYJ0PHA7","parent_id":null,"user_id":null}},
+      "extra_data": null,
+      "last_seen": "2024-10-07T13:12:25.118435+00:00"
+    },
+    {
+      "state": {"entity_id":"automation.solar_power_increase_charging","state":"on","attributes":{"id":"1727598145435","last_triggered":"2024-09-30T09:00:35.081318+00:00","mode":"restart","current":0,"icon":"mdi:solar-power","friendly_name":"solar power - increase charging"},"last_changed":"2024-10-07T13:01:39.820011+00:00","last_reported":"2024-10-07T13:01:39.820011+00:00","last_updated":"2024-10-07T13:01:39.820011+00:00","context":{"id":"01J9KH4DKCJAW1SESXZRHG7YH7","parent_id":null,"user_id":null}},
+      "extra_data": null,
+      "last_seen": "2024-10-07T13:12:25.118435+00:00"
+    },
+    {
+      "state": {"entity_id":"automation.solar_power_decrease_charging","state":"on","attributes":{"id":"1727598715683","last_triggered":"2024-10-07T13:06:50.637484+00:00","mode":"single","current":0,"icon":"mdi:solar-power","friendly_name":"solar power - decrease charging"},"last_changed":"2024-10-07T13:01:39.820079+00:00","last_reported":"2024-10-07T13:06:50.664179+00:00","last_updated":"2024-10-07T13:06:50.664179+00:00","context":{"id":"01J9KHDX4D7MJTVCT0SKVS21XN","parent_id":"01J9KHDX4ARP3Z8ZB2E9GDVH2B","user_id":null}},
+      "extra_data": null,
+      "last_seen": "2024-10-07T13:12:25.118435+00:00"
+    },
+    {
+      "state": {"entity_id":"tts.google_translate_en_com","state":"unknown","attributes":{"friendly_name":"Google Translate en com"},"last_changed":"2024-10-07T13:01:39.864353+00:00","last_reported":"2024-10-07T13:01:39.864353+00:00","last_updated":"2024-10-07T13:01:39.864353+00:00","context":{"id":"01J9KH4DMRM9Y3SRQTFJ5CVK6H","parent_id":null,"user_id":null}},
+      "extra_data": null,
+      "last_seen": "2024-10-07T13:12:25.118435+00:00"
+    },
+    {
+      "state": {"entity_id":"update.hacs_update","state":"off","attributes":{"auto_update":false,"installed_version":"2.0.1","in_progress":false,"latest_version":"2.0.1","release_summary":null,"release_url":"https://github.com/hacs/integration/releases/2.0.1","skipped_version":null,"title":null,"entity_picture":"https://brands.home-assistant.io/_/hacs/icon.png","friendly_name":"HACS update","supported_features":23},"last_changed":"2024-10-07T13:01:39.871876+00:00","last_reported":"2024-10-07T13:01:39.871876+00:00","last_updated":"2024-10-07T13:01:39.871876+00:00","context":{"id":"01J9KH4DMZ693ASD0ZR45W0RKK","parent_id":null,"user_id":null}},
+      "extra_data": null,
+      "last_seen": "2024-10-07T13:12:25.118435+00:00"
+    },
+    {
+      "state": {"entity_id":"update.template_entity_row_update","state":"off","attributes":{"auto_update":false,"installed_version":"v1.4.1","in_progress":false,"latest_version":"v1.4.1","release_summary":null,"release_url":"https://github.com/thomasloven/lovelace-template-entity-row/releases/v1.4.1","skipped_version":null,"title":null,"friendly_name":"template-entity-row update","supported_features":23},"last_changed":"2024-10-07T13:01:39.871939+00:00","last_reported":"2024-10-07T13:01:39.871939+00:00","last_updated":"2024-10-07T13:01:39.871939+00:00","context":{"id":"01J9KH4DMZH5DV00BCG21EE0V8","parent_id":null,"user_id":null}},
+      "extra_data": null,
+      "last_seen": "2024-10-07T13:12:25.118435+00:00"
+    },
+    {
+      "state": {"entity_id":"update.slider_entity_row_update","state":"off","attributes":{"auto_update":false,"installed_version":"17.4.1","in_progress":false,"latest_version":"17.4.1","release_summary":null,"release_url":"https://github.com/thomasloven/lovelace-slider-entity-row/releases/17.4.1","skipped_version":null,"title":null,"friendly_name":"slider-entity-row update","supported_features":23},"last_changed":"2024-10-07T13:01:39.871986+00:00","last_reported":"2024-10-07T13:01:39.871986+00:00","last_updated":"2024-10-07T13:01:39.871986+00:00","context":{"id":"01J9KH4DMZPAHW2THWYBHM1X8F","parent_id":null,"user_id":null}},
+      "extra_data": null,
+      "last_seen": "2024-10-07T13:12:25.118435+00:00"
+    }
+  ]
+}

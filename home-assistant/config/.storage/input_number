@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "minor_version": 1,
+  "key": "input_number",
+  "data": {
+    "items": [
+      {
+        "id": "new_charge_limit",
+        "min": 0.0,
+        "max": 16.0,
+        "name": "new_charge_limit",
+        "icon": "mdi:lightning-bolt",
+        "step": 0.1,
+        "unit_of_measurement": "A",
+        "mode": "slider"
+      },
+      {
+        "id": "charge_limit",
+        "min": 0.0,
+        "max": 100.0,
+        "name": "charge_limit",
+        "icon": "mdi:lightning-bolt",
+        "step": 1.0,
+        "unit_of_measurement": "A",
+        "mode": "slider"
+      },
+      {
+        "id": "solar_production",
+        "min": 0.0,
+        "max": 10000.0,
+        "name": "solar_production",
+        "unit_of_measurement": "kWh",
+        "icon": "mdi:solar-power",
+        "step": 1.0,
+        "mode": "slider"
+      }
+    ]
+  }
+}

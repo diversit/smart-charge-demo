@@ -1,0 +1,53 @@
+
+# Loads default set of integrations. Do not remove.
+default_config:
+
+# Load frontend themes from the themes folder
+frontend:
+  themes: !include_dir_merge_named themes
+
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+
+rest_command:
+  set_charging_limit_con1:
+    url: http://host.docker.internal:8080/api/chargepoint/1/chargeLimit
+    method: PUT
+    content_type: "text/plain"
+    payload: >-
+      {{ states('input_number.charge_limit') | float }}
+
+rest:
+  - resource: http://host.docker.internal:8080/api/chargepoint
+    scan_interval: 2
+    sensor:
+      - name: "Chargepoint"
+        icon: "mdi:ev-station"
+        json_attributes:
+          - "chargePointId"
+          - "timestamp"
+        unique_id: "my-chargepoint"
+        value_template: "{{ value_json.status }}"
+      - name: "Connector 1"
+        icon: "mdi:ev-plug-type1"
+        value_template: "{{ value_json.connectors['1'].status}}"
+        json_attributes_path: "connectors['1'].attributes"
+        json_attributes:
+          - idTag
+          - txId
+          - txStopTimestamp
+          - txStartTimestamp
+          - meterStart
+          - lastMeterValue
+          - totalCharged
+          - timestamp
+        unique_id: "connector1"
+      - name: "Connector 1 metervalue"
+        icon: "mdi:meter-electric-outline"
+        value_template: "{{ value_json.connectors['1'].attributes.lastMeterValue | default (0) }}"
+        unique_id: "connector1_meter_value"
+        device_class: "energy"
+        unit_of_measurement: "kWh"
+        state_class: "total_increasing"
+
